@@ -207,10 +207,68 @@ button:disabled{
   font-size:12px;
   color:var(--muted);
 }
+  /* SPLASH SCREEN */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeOut 0.6s ease forwards;
+  animation-delay: 3.8s;
+}
+
+.splash-content {
+  text-align: center;
+  animation: scaleIn 1s ease;
+}
+
+.splash-content .logo {
+  font-size: 72px;
+  filter: drop-shadow(0 0 18px rgba(99,102,241,0.8));
+  animation: pulse 1.4s infinite;
+}
+
+.splash-content h1 {
+  margin: 12px 0 6px;
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+.splash-content p {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Animations */
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; visibility: hidden; }
+}
+
 </style>
 </head>
 
 <body>
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-content">
+    <div class="logo">🎭</div>
+    <h1>Mafia Game</h1>
+    <p>Developed by Hirani Tech</p>
+  </div>
+</div>
 
 <div class="card" id="card">
 
@@ -374,8 +432,23 @@ backBtn.onclick=()=>{
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
+  const icons = ["🎭","😈","🩺","🕵️"];
+let i = 0;
+setInterval(()=>{
+  document.querySelector(".logo").textContent = icons[i++ % icons.length];
+},600);
+
+</script>
+<script>
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const splash = document.getElementById("splash");
+    if (splash) splash.remove();
+  }, 4000);
+});
 </script>
 
 </body>
 </html>
+
 
