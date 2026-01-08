@@ -256,7 +256,64 @@ button:disabled{
 @keyframes fadeOut {
   to { opacity: 0; visibility: hidden; }
 }
+/* ===== POPUP ===== */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,.75);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+}
 
+.popup.hidden{ display:none; }
+
+.popup-card{
+  background:#0f172a;
+  border-radius:22px;
+  padding:22px;
+  width:85%;
+  max-width:320px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,.7);
+  animation:popIn .35s ease;
+}
+
+.popup-icon{
+  font-size:42px;
+  margin-bottom:10px;
+}
+
+.popup-card h2{
+  margin:0;
+  font-size:20px;
+}
+
+.popup-card p{
+  font-size:14px;
+  color:#94a3b8;
+  margin:10px 0 18px;
+}
+
+.popup-card button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  font-weight:800;
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  color:white;
+  cursor:pointer;
+}
+
+@keyframes popIn{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+button:active{
+	transform:scale(.97);
+}
 </style>
 </head>
 
@@ -271,6 +328,15 @@ button:disabled{
 </div>
 <!-- Suspense sound -->
 <audio id="suspenseSound" src="suspense.mp3" preload="auto"></audio>
+<!-- 🚨 CUSTOM POPUP -->
+<div id="popup" class="popup hidden">
+  <div class="popup-card">
+    <div class="popup-icon" id="popupIcon">⚠️</div>
+    <h2 id="popupTitle">Error</h2>
+    <p id="popupMsg">Something went wrong</p>
+    <button onclick="closePopup()">OK</button>
+  </div>
+</div>
 
 <div class="card" id="card">
 
@@ -380,10 +446,16 @@ joinBtn.onclick = async () => {
   // 🔍 CHECK ROOM EXISTS
   const roomSnap = await get(ref(db, "rooms/" + roomCode));
 
-  if (!roomSnap.exists()) {
-    alert("❌ Invalid room code");
-    return;
-  }
+if (!roomSnap.exists()) {
+  showPopup(
+    "Invalid Room",
+    "This room code does not exist.\nAsk the admin for the correct code.",
+    "🚫"
+  );
+  return;
+}
+
+showPopup("Joined!","Get ready to reveal your role","🎭");
 
   // ✅ ROOM VALID — PROCEED
   playerLabel.innerText = playerName;
@@ -491,6 +563,18 @@ function playSuspense() {
   suspenseSound.currentTime = 0;
   suspenseSound.volume = 1.0;   // keep high for mobiles
   suspenseSound.play().catch(()=>{});
+}
+</script>
+<script>
+function showPopup(title, msg, icon="⚠️"){
+  document.getElementById("popupTitle").textContent = title;
+  document.getElementById("popupMsg").textContent = msg;
+  document.getElementById("popupIcon").textContent = icon;
+  document.getElementById("popup").classList.remove("hidden");
+}
+
+function closePopup(){
+  document.getElementById("popup").classList.add("hidden");
 }
 </script>
 
