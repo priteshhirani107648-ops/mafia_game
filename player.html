@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mafia Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --panel:#020617;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+
+  --mafia:#ef4444;
+  --doctor:#22c55e;
+  --villager:#38bdf8;
+  --other:#a855f7;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  height:100vh;
+  background:var(--bg);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:system-ui;
+  color:var(--text);
+}
+
+.card{
+  width:100%;
+  max-width:380px;
+  background:var(--card);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+  position:relative;
+  overflow:hidden;
+}
+
+.card.glow-mafia{ box-shadow:0 0 30px rgba(239,68,68,.6); }
+.card.glow-doctor{ box-shadow:0 0 30px rgba(34,197,94,.6); }
+.card.glow-villager{ box-shadow:0 0 30px rgba(56,189,248,.6); }
+.card.glow-other{ box-shadow:0 0 30px rgba(168,85,247,.6); }
+
+.hidden{display:none}
+
+/* Header */
+.header{
+  text-align:center;
+  margin-bottom:16px;
+}
+.header h1{
+  margin:0;
+  font-size:24px;
+}
+.player-name{
+  font-size:14px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* Inputs */
+input{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  border:none;
+  border-radius:14px;
+  background:var(--panel);
+  color:var(--text);
+  font-size:16px;
+  text-align:center;
+}
+
+/* Room code boxes */
+.code-boxes{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+.code-boxes input{
+  padding:16px 0;
+  font-size:22px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+
+/* Buttons */
+button{
+  width:100%;
+  margin-top:20px;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.primary{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#052e16;
+}
+
+.reveal{
+  height:140px;
+  font-size:26px;
+  background:linear-gradient(135deg,#6366f1,#4338ca);
+  color:white;
+  position:relative;
+  overflow:hidden;
+}
+
+.reveal::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at center,rgba(255,255,255,.25),transparent 60%);
+  opacity:0;
+}
+
+.reveal.animating::after{
+  animation:flash .6s ease;
+}
+
+@keyframes flash{
+  0%{opacity:0}
+  50%{opacity:1}
+  100%{opacity:0}
+}
+
+.secondary{
+  background:#020617;
+  color:var(--muted);
+  border:1px solid #1e293b;
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+/* Role */
+.role{
+  margin-top:24px;
+  text-align:center;
+  font-size:34px;
+  font-weight:900;
+  opacity:0;
+  transform:scale(.8);
+}
+
+.role.show{
+  animation:revealRole .6s ease forwards;
+}
+
+@keyframes revealRole{
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+.role.mafia{
+  color:var(--mafia);
+  text-shadow:0 0 18px rgba(239,68,68,.8);
+}
+
+.role.doctor{
+  color:var(--doctor);
+  text-shadow:0 0 18px rgba(34,197,94,.8);
+}
+
+.role.villager{
+  color:var(--villager);
+  text-shadow:0 0 18px rgba(56,189,248,.8);
+}
+
+.role.other{
+  color:var(--other);
+  text-shadow:0 0 18px rgba(168,85,247,.8);
+}
+.footer{
+  margin-top:20px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card" id="card">
+
+  <!-- JOIN -->
+  <div id="joinScreen">
+    <div class="header">
+      <h1>🎭 Mafia</h1>
+      <div class="player-name">Join the game</div>
+    </div>
+
+    <input id="playerName" placeholder="Your name">
+
+    <div class="code-boxes">
+      <input maxlength="1">
+      <input maxlength="1">
+      <input maxlength="1">
+      <input maxlength="1">
+    </div>
+
+    <button class="primary" id="joinBtn">Join Game</button>
+  </div>
+
+  <!-- REVEAL -->
+  <div id="revealScreen" class="hidden">
+    <div class="header">
+      <h1>🤫 Your Role</h1>
+      <div class="player-name" id="playerLabel"></div>
+    </div>
+
+    <button class="reveal" id="revealBtn">Reveal My Role</button>
+
+    <div class="role" id="roleResult"></div>
+
+    <button class="secondary" id="backBtn">← Back</button>
+  </div>
+<div class="footer">
+  © <span id="year"></span> Hirani Tech — Developed by Pritesh Hirani
+</div>
+</div>
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+<script type="module">
+/* 🔒 LOGIC UNCHANGED */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBfF8_DvPWvcH_lr2SbNHyE_XRkGqq_0eg",
+  authDomain: "mafia-game-362c0.firebaseapp.com",
+  databaseURL: "https://mafia-game-362c0-default-rtdb.firebaseio.com",
+  projectId: "mafia-game-362c0",
+  storageBucket: "mafia-game-362c0.firebasestorage.app",
+  messagingSenderId: "658059342322",
+  appId: "1:658059342322:web:067f8ae47960b5534efb6b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+let uid=null, playerName="", roomCode="";
+
+signInAnonymously(auth);
+onAuthStateChanged(auth,u=>{ if(u) uid=u.uid; });
+
+const joinScreen=document.getElementById("joinScreen");
+const revealScreen=document.getElementById("revealScreen");
+const joinBtn=document.getElementById("joinBtn");
+const revealBtn=document.getElementById("revealBtn");
+const roleResult=document.getElementById("roleResult");
+const backBtn=document.getElementById("backBtn");
+const playerLabel=document.getElementById("playerLabel");
+const card=document.getElementById("card");
+
+/* Room code auto focus */
+document.querySelectorAll(".code-boxes input").forEach((b,i,a)=>{
+  b.oninput=()=>{ b.value=b.value.toUpperCase(); if(b.value&&a[i+1])a[i+1].focus(); };
+});
+
+/* Join */
+joinBtn.onclick=()=>{
+  playerName=document.getElementById("playerName").value.trim();
+  roomCode=[...document.querySelectorAll(".code-boxes input")].map(i=>i.value).join("").toUpperCase();
+  if(!playerName||roomCode.length!==4) return alert("Enter name & 4-letter room code");
+
+  playerLabel.innerText=playerName;
+  joinScreen.classList.add("hidden");
+  revealScreen.classList.remove("hidden");
+};
+
+/* Reveal */
+revealBtn.onclick=async()=>{
+  const roleKey=`mafia_role_${roomCode}`;
+  if(localStorage.getItem(roleKey)){
+    showRole(localStorage.getItem(roleKey));
+    revealBtn.disabled=true;
+    return;
+  }
+
+  revealBtn.disabled=true;
+  revealBtn.classList.add("animating");
+  roleResult.innerText="";
+
+  const tx=await runTransaction(ref(db,"rooms/"+roomCode),d=>{
+    if(!d) return d;
+    if(d.players&&d.players[uid]) return d;
+    for(const k in d.taken){
+      if(!d.taken[k]){
+        d.taken[k]=true;
+        d.players=d.players||{};
+        d.players[uid]={name:playerName,role:d.roles[k]};
+        return d;
+      }
+    }
+    return d;
+  });
+
+  const role=tx.snapshot.val()?.players?.[uid]?.role;
+  if(!role){ revealBtn.disabled=false; return; }
+
+  localStorage.setItem(roleKey,role);
+  setTimeout(()=>showRole(role),500);
+};
+
+/* Show role with theme */
+function showRole(role){
+  roleResult.className="role show";
+  card.className="card";
+
+  if(role.toLowerCase()==="mafia"){
+    roleResult.classList.add("mafia");
+    card.classList.add("glow-mafia");
+  }else if(role.toLowerCase()==="doctor"){
+    roleResult.classList.add("doctor");
+    card.classList.add("glow-doctor");
+  }else if(role.toLowerCase()==="villager"){
+    roleResult.classList.add("villager");
+    card.classList.add("glow-villager");
+  }else{
+    roleResult.classList.add("other");
+    card.classList.add("glow-other");
+  }
+
+  roleResult.innerText=role;
+}
+
+/* Back */
+backBtn.onclick=()=>{
+  revealBtn.disabled=false;
+  revealBtn.classList.remove("animating");
+  roleResult.innerText="";
+  roleResult.className="role";
+  card.className="card";
+  revealScreen.classList.add("hidden");
+  joinScreen.classList.remove("hidden");
+};
+</script>
+
+</body>
+</html>

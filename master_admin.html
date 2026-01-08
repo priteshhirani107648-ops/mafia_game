@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Master Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --panel:#020617;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --danger:#ef4444;
+  --primary:#22c55e;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:#020617;
+  font-family:system-ui;
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:20px;
+}
+
+.card{
+  width:100%;
+  max-width:460px;
+  background:var(--card);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+}
+
+h1{text-align:center;margin:0 0 12px}
+.subtitle{text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px}
+
+.room{
+  background:var(--panel);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
+  font-size:14px;
+}
+
+.room b{font-size:16px}
+.room small{color:var(--muted)}
+
+.room button{
+  margin-top:8px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+  background:var(--danger);
+  color:white;
+}
+
+.top-actions{
+  display:grid;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.top-actions button{
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.cleanup{background:var(--primary);color:#052e16}
+.reload{
+  background:#020617;
+  color:var(--muted);
+  border:1px solid #1e293b;
+}
+.delete-all{
+  background:#7f1d1d;
+  color:white;
+}
+
+.footer{
+  margin-top:16px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>👑 Master Admin</h1>
+  <div class="subtitle">Firebase control panel</div>
+
+  <!-- 📊 STATS -->
+  <div id="statsBox" class="room"></div>
+
+  <div class="top-actions">
+    <button class="cleanup" onclick="lazyCleanupRooms()">🧹 Cleanup Old Rooms</button>
+    <button class="delete-all" onclick="deleteAllRooms()">🧨 Delete ALL Rooms</button>
+    <button class="reload" onclick="loadRooms()">🔄 Reload</button>
+  </div>
+
+  <div id="roomList"></div>
+
+  <div class="footer">
+    © <span id="year"></span> Hirani Tech — Developed by Pritesh Hirani
+  </div>
+</div>
+
+<script type="module">
+/* 🔐 MASTER KEY */
+const MASTER_KEY = "HIRANI-ADMIN-2026";
+if (prompt("Enter master key:") !== MASTER_KEY) {
+  alert("Access denied");
+  location.href = "index.html";
+}
+
+/* FIREBASE */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, get, remove, set, update, increment } from
+  "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBfF8_DvPWvcH_lr2SbNHyE_XRkGqq_0eg",
+  authDomain: "mafia-game-362c0.firebaseapp.com",
+  databaseURL: "https://mafia-game-362c0-default-rtdb.firebaseio.com",
+  projectId: "mafia-game-362c0",
+  storageBucket: "mafia-game-362c0.firebasestorage.app",
+  messagingSenderId: "658059342322",
+  appId: "1:658059342322:web:067f8ae47960b5534efb6b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* 📊 INIT STATS */
+async function initStats(){
+  const s = await get(ref(db,"stats"));
+  if(!s.exists()){
+    await set(ref(db,"stats"),{
+      totalRooms:0,
+      totalPlayers:0,
+      roomsDeleted:0
+    });
+  }
+}
+
+/* 📊 LOAD STATS */
+async function loadStats(){
+  const s = await get(ref(db,"stats"));
+  if(!s.exists()) return;
+  const d = s.val();
+  statsBox.innerHTML = `
+    <b>📊 Game Stats</b><br>
+    Rooms created: ${d.totalRooms || 0}<br>
+    Players joined: ${d.totalPlayers || 0}<br>
+    Rooms deleted: ${d.roomsDeleted || 0}
+  `;
+}
+
+/* 🧹 LAZY CLEANUP */
+async function lazyCleanupRooms(){
+  const snap = await get(ref(db,"rooms"));
+  if(!snap.exists()) return;
+
+  const now = Date.now();
+  const MAX_AGE = 6 * 60 * 60 * 1000;
+  let removed = 0;
+
+  snap.forEach(room=>{
+    const d = room.val();
+    if(d.createdAt && now - d.createdAt > MAX_AGE){
+      remove(ref(db,"rooms/"+room.key));
+      removed++;
+    }
+  });
+
+  if(removed){
+    update(ref(db,"stats"),{ roomsDeleted: increment(removed) });
+  }
+  loadRooms(); loadStats();
+}
+
+/* 🧨 DELETE ALL ROOMS */
+window.deleteAllRooms = async ()=>{
+  if(!confirm("Delete ALL rooms?")) return;
+  if(!confirm("This cannot be undone. Continue?")) return;
+
+  const snap = await get(ref(db,"rooms"));
+  if(snap.exists()){
+    const count = snap.size;
+    await remove(ref(db,"rooms"));
+    update(ref(db,"stats"),{ roomsDeleted: increment(count) });
+  }
+  loadRooms(); loadStats();
+};
+
+/* 📊 LOAD ROOMS */
+async function loadRooms(){
+  const snap = await get(ref(db,"rooms"));
+  roomList.innerHTML = "";
+
+  if(!snap.exists()){
+    roomList.innerHTML = "<p>No rooms found</p>";
+    return;
+  }
+
+  snap.forEach(room=>{
+    const d = room.val();
+    const ageMin = d.createdAt
+      ? Math.floor((Date.now() - d.createdAt)/60000)
+      : "N/A";
+    const players = Object.keys(d.players || {}).length;
+
+    const div = document.createElement("div");
+    div.className = "room";
+    if(ageMin !== "N/A" && ageMin > 360){
+      div.style.border = "1px solid #ef4444";
+    }
+    div.innerHTML = `
+      <b>Room: ${room.key}</b><br>
+      <small>Players: ${players}</small><br>
+      <small>Age: ${ageMin} min</small>
+      <button onclick="deleteRoom('${room.key}')">❌ Delete Room</button>
+    `;
+    roomList.appendChild(div);
+  });
+}
+
+/* ❌ DELETE ROOM */
+window.deleteRoom = async (code)=>{
+  if(confirm("Delete room "+code+"?")){
+    await remove(ref(db,"rooms/"+code));
+    update(ref(db,"stats"),{ roomsDeleted: increment(1) });
+    loadRooms(); loadStats();
+  }
+};
+
+/* INIT */
+initStats();
+loadRooms();
+loadStats();
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

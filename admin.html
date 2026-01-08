@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mafia Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --panel:#020617;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --primary:#22c55e;
+  --danger:#ef4444;
+  --accent:#6366f1;
+  --green:#22c55e;
+  --yellow:#eab308;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;height:100vh;
+  display:flex;justify-content:center;align-items:center;
+  background:#020617;font-family:system-ui;color:var(--text)
+}
+.container{width:100%;max-width:420px;padding:14px}
+.card{
+  background:var(--card);border-radius:22px;
+  padding:22px;box-shadow:0 20px 40px rgba(0,0,0,.6)
+}
+.hidden{display:none}
+h1{text-align:center;margin:0}
+.subtitle{text-align:center;font-size:13px;color:var(--muted);margin:6px 0 14px}
+
+.input{margin-top:14px}
+.input label{font-size:13px;color:var(--muted)}
+.input input{
+  width:100%;margin-top:6px;padding:12px;
+  font-size:17px;border:none;border-radius:14px;
+  background:var(--panel);color:var(--text);text-align:center
+}
+
+.role-row{
+  display:grid;
+  grid-template-columns:1fr 70px 36px;
+  gap:6px;
+  margin-top:8px;
+}
+.role-row input{
+  padding:10px;border:none;border-radius:10px;
+  background:#020617;color:white;text-align:center
+}
+.remove{
+  background:var(--danger);
+  border:none;border-radius:10px;
+  color:white;font-weight:bold;
+  cursor:pointer
+}
+
+button{
+  width:100%;margin-top:16px;padding:16px;
+  border:none;border-radius:18px;
+  font-size:18px;font-weight:800;cursor:pointer
+}
+.primary{background:linear-gradient(135deg,var(--primary),#16a34a);color:#052e16}
+.danger{background:var(--danger);color:white}
+
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-top:20px
+}
+.stat{
+  background:#020617;border-radius:16px;
+  padding:14px 6px;text-align:center
+}
+.stat h2{margin:0;font-size:26px}
+.stat p{margin:6px 0 0;font-size:12px;color:var(--muted)}
+
+.player{
+  margin-top:6px;
+  padding:6px;
+  border-bottom:1px solid #1e293b;
+  font-size:14px;
+}
+.footer{
+  margin-top:20px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+}
+
+</style>
+</head>
+
+<body>
+<div class="container">
+<div class="card">
+
+<!-- ================= SETUP ================= -->
+<div id="setupView">
+  <h1>🎭 GOD Panel</h1>
+  <div class="subtitle">Game setup</div>
+
+  <div class="input">
+    <label>👥 Total Players</label>
+    <input id="totalPlayers" type="number" min="3">
+  </div>
+
+  <div class="input">
+    <label>😈 Mafia Count</label>
+    <input id="mafiaCount" type="number" value="1">
+  </div>
+
+  <div class="input">
+    <label>🩺 Doctor Count</label>
+    <input id="doctorCount" type="number" value="0">
+  </div>
+
+  <div id="optionalRoles"></div>
+  <button onclick="addOptionalRole()">➕ Add Optional Role</button>
+
+  <div class="subtitle" id="villagerSummary">
+    Villagers: 0
+  </div>
+
+  <button class="primary" onclick="createRoom()">Create Room</button>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboardView" class="hidden">
+  <h1>🎭 Game Status</h1>
+  <div class="subtitle">Live players</div>
+
+  <h2 id="roomCode" style="text-align:center"></h2>
+
+  <div class="stats">
+    <div class="stat"><h2 id="total">0</h2><p>Total</p></div>
+    <div class="stat"><h2 id="revealed">0</h2><p>Revealed</p></div>
+    <div class="stat"><h2 id="remaining">0</h2><p>Remaining</p></div>
+  </div>
+
+  <button onclick="revealAllPlayers()">👁 Reveal All Players</button>
+  <div id="playerList"></div>
+
+  <button class="danger" onclick="cancelGame()">❌ Cancel Game</button>
+  
+</div>
+<div class="footer">
+  © <span id="year"></span> Hirani Tech — Developed by Pritesh Hirani
+</div>
+
+</div>
+</div>
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, remove } from
+  "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBfF8_DvPWvcH_lr2SbNHyE_XRkGqq_0eg",
+  authDomain: "mafia-game-362c0.firebaseapp.com",
+  databaseURL: "https://mafia-game-362c0-default-rtdb.firebaseio.com",
+  projectId: "mafia-game-362c0",
+  storageBucket: "mafia-game-362c0.firebasestorage.app",
+  messagingSenderId: "658059342322",
+  appId: "1:658059342322:web:067f8ae47960b5534efb6b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+let currentRoomRef = null;
+let isPlayersVisible = false;
+
+/* SHUFFLE */
+function shuffleArray(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+/* OPTIONAL ROLES */
+window.addOptionalRole = () => {
+  const row = document.createElement("div");
+  row.className = "role-row";
+  row.innerHTML = `
+    <input placeholder="Role name">
+    <input type="number" value="1" min="1">
+    <button class="remove">✕</button>
+  `;
+  row.querySelector(".remove").onclick = () => {
+    row.remove();
+    updateVillagers();
+  };
+  row.querySelectorAll("input").forEach(i=>i.oninput=updateVillagers);
+  optionalRoles.appendChild(row);
+  updateVillagers();
+};
+
+function updateVillagers(){
+  const total = +totalPlayers.value || 0;
+  let used = (+mafiaCount.value || 0) + (+doctorCount.value || 0);
+  document.querySelectorAll(".role-row input[type='number']")
+    .forEach(i => used += (+i.value || 0));
+  villagerSummary.innerText =
+    total-used >= 0 ? `Villagers: ${total-used}` : "Invalid role count";
+}
+
+totalPlayers.oninput = mafiaCount.oninput = doctorCount.oninput = updateVillagers;
+
+/* CREATE ROOM */
+function randCode(){
+  return Math.random().toString(36).substr(2,4).toUpperCase();
+}
+
+window.createRoom = async () => {
+  const t = +totalPlayers.value;
+  let roles = [];
+
+  roles.push(...Array(+mafiaCount.value).fill("Mafia"));
+  roles.push(...Array(+doctorCount.value).fill("Doctor"));
+
+  document.querySelectorAll(".role-row").forEach(r=>{
+    const name = r.children[0].value.trim();
+    const cnt = +r.children[1].value;
+    if(name && cnt > 0){
+      roles.push(...Array(cnt).fill(name));
+    }
+  });
+
+  if(roles.length >= t){
+    alert("Roles exceed total players");
+    return;
+  }
+
+  roles.push(...Array(t - roles.length).fill("Villager"));
+  shuffleArray(roles);
+
+  let code, roomRef;
+  do{
+    code = randCode();
+    roomRef = ref(db,"rooms/"+code);
+  }while((await get(roomRef)).exists());
+
+  let rolesObj={}, takenObj={};
+  roles.forEach((r,i)=>{
+    rolesObj["r"+i]=r;
+    takenObj["r"+i]=false;
+  });
+
+  await set(roomRef,{
+    roles:rolesObj,
+    taken:takenObj,
+    players:{}
+  });
+
+  currentRoomRef = roomRef;
+  setupView.classList.add("hidden");
+  dashboardView.classList.remove("hidden");
+  roomCode.innerText = code;
+
+  onValue(roomRef,s=>{
+    const d=s.val();
+    total.innerText = Object.keys(d.roles).length;
+    revealed.innerText = Object.values(d.taken).filter(v=>v).length;
+    remaining.innerText = total.innerText - revealed.innerText;
+  });
+};
+
+/* TOGGLE REVEAL */
+window.revealAllPlayers = async () => {
+  if (!currentRoomRef) return;
+  const btn = event.target;
+
+  if (isPlayersVisible) {
+    playerList.innerHTML = "";
+    btn.innerText = "👁 Reveal All Players";
+    isPlayersVisible = false;
+    return;
+  }
+
+  const snap = await get(currentRoomRef);
+  playerList.innerHTML = "";
+
+  Object.values(snap.val().players || {}).forEach(p=>{
+    const div=document.createElement("div");
+    div.className="player";
+    div.innerText = `${p.name} — ${p.role}`;
+    playerList.appendChild(div);
+  });
+
+  btn.innerText = "🙈 Hide Players";
+  isPlayersVisible = true;
+};
+
+/* CANCEL GAME */
+window.cancelGame = async () => {
+  if(!confirm("Cancel game?")) return;
+  await remove(currentRoomRef);
+  location.reload();
+};
+</script>
+
+</body>
+</html>
