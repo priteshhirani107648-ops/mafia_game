@@ -34,9 +34,6 @@
 }
 
 *{box-sizing:border-box}
-button:active{
-	transform:scale(.97);
-}
 
 body{
   margin:0;
@@ -330,7 +327,7 @@ function playSuspense() {
 <script type="module">
 /* 🔒 LOGIC UNCHANGED */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, runTransaction, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -367,15 +364,34 @@ document.querySelectorAll(".code-boxes input").forEach((b,i,a)=>{
 });
 
 /* Join */
-joinBtn.onclick=()=>{
-  playerName=document.getElementById("playerName").value.trim();
-  roomCode=[...document.querySelectorAll(".code-boxes input")].map(i=>i.value).join("").toUpperCase();
-  if(!playerName||roomCode.length!==4) return alert("Enter name & 4-letter room code");
+joinBtn.onclick = async () => {
 
-  playerLabel.innerText=playerName;
+  playerName = document.getElementById("playerName").value.trim();
+  roomCode = [...document.querySelectorAll(".code-boxes input")]
+              .map(i => i.value)
+              .join("")
+              .toUpperCase();
+
+  if (!playerName || roomCode.length !== 4) {
+    alert("Enter name and 4-letter room code");
+    return;
+  }
+
+  // 🔍 CHECK ROOM EXISTS
+  const roomSnap = await get(ref(db, "rooms/" + roomCode));
+
+  if (!roomSnap.exists()) {
+    alert("❌ Invalid room code");
+    return;
+  }
+
+  // ✅ ROOM VALID — PROCEED
+  playerLabel.innerText = playerName;
   joinScreen.classList.add("hidden");
   revealScreen.classList.remove("hidden");
 };
+card.classList.add("shake");
+setTimeout(()=>card.classList.remove("shake"),400);
 
 /* Reveal */
 revealBtn.onclick=async()=>{
@@ -480,7 +496,6 @@ function playSuspense() {
 
 </body>
 </html>
-
 
 
 
