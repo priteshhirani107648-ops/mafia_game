@@ -2,7 +2,7 @@
   "name": "Mafia Game",
   "short_name": "Mafia",
   "description": "A web-based Mafia party game",
-  "start_url": "/.",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#020617",
