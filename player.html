@@ -313,6 +313,17 @@ button:disabled{
 <script>
   document.getElementById("year").textContent = new Date().getFullYear();
 </script>
+<script>
+const suspenseSound = document.getElementById("suspenseSound");
+
+function playSuspense() {
+  suspenseSound.pause();
+  suspenseSound.currentTime = 0;
+  suspenseSound.volume = 1.0;
+  suspenseSound.play().catch(e => console.log("Sound blocked:", e));
+}
+</script>
+
 <script type="module">
 /* 🔒 LOGIC UNCHANGED */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -365,6 +376,10 @@ joinBtn.onclick=()=>{
 
 /* Reveal */
 revealBtn.onclick=async()=>{
+
+  // 🔊 PLAY SUSPENSE — MUST BE FIRST
+  playSuspense();
+
   const roleKey=`mafia_role_${roomCode}`;
   if(localStorage.getItem(roleKey)){
     showRole(localStorage.getItem(roleKey));
@@ -448,20 +463,6 @@ window.addEventListener("load", () => {
     if (splash) splash.remove();
   }, 2500);
 });
-  document.getElementById("revealBtn").onclick = () => {
-
-  // 🔊 PLAY SUSPENSE (MUST BE FIRST)
-  playSuspense();
-
-  // ⏳ Delay for tension
-  setTimeout(() => {
-
-    // 🎭 Reveal role UI here
-    roleCard.classList.add("reveal");
-
-  }, 2000); // 2 seconds is perfect
-};
-
 </script>
 <script>
 const suspenseSound = document.getElementById("suspenseSound");
@@ -476,7 +477,6 @@ function playSuspense() {
 
 </body>
 </html>
-
 
 
 
