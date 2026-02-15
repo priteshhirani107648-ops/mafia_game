@@ -156,6 +156,58 @@ button{
 	transform:scale(.97);
 }
 
+/* ===== CANCEL MODAL ===== */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(6px);
+  opacity:0;
+  visibility:hidden;
+  transition:.3s;
+  z-index:10000;
+}
+
+.modal.show{
+  opacity:1;
+  visibility:visible;
+}
+
+.modal-box{
+  width:90%;
+  max-width:340px;
+  background:#0f172a;
+  border-radius:22px;
+  padding:26px;
+  text-align:center;
+  transform:scale(.7);
+  transition:.3s cubic-bezier(.34,1.56,.64,1);
+}
+
+.modal.show .modal-box{
+  transform:scale(1);
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.modal-actions button{
+  flex:1;
+  margin:0;
+  padding:12px;
+  font-size:15px;
+  border-radius:12px;
+}
+
+.cancel-btn{background:#1e293b;color:white;}
+.confirm-btn{background:#ef4444;color:white;}
+
 
 
 </style>
@@ -220,7 +272,8 @@ button{
   <button onclick="revealAllPlayers()">👁 Reveal All Players</button>
   <div id="playerList"></div>
 
-  <button class="danger" onclick="cancelGame()">❌ Cancel Game</button>
+  <button class="danger" onclick="openCancelModal()">❌ Cancel Game</button>
+
   
 </div>
 <div class="footer">
@@ -375,11 +428,27 @@ window.revealAllPlayers = async () => {
 };
 
 /* CANCEL GAME */
-window.cancelGame = async () => {
-  if(!confirm("Cancel game?")) return;
+
+window.openCancelModal = () => {
+  cancelModal.classList.add("show");
+};
+
+window.closeCancelModal = () => {
+  cancelModal.classList.remove("show");
+};
+
+window.confirmCancel = async () => {
+  if(!currentRoomRef) return;
   await remove(currentRoomRef);
   location.reload();
 };
+
+/* click outside to close */
+cancelModal.onclick = (e) => {
+  if(e.target === cancelModal) closeCancelModal();
+};
+
+
 </script>
 <script>
 if ("serviceWorker" in navigator) {
@@ -401,8 +470,21 @@ window.addEventListener("load", () => {
 });
 </script>
 
+
+<!-- CANCEL GAME MODAL -->
+<div id="cancelModal" class="modal">
+  <div class="modal-box">
+    <h2>Cancel Game?</h2>
+    <p>This will delete the room permanently.</p>
+
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeCancelModal()">No</button>
+      <button class="confirm-btn" onclick="confirmCancel()">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
-
 
 
