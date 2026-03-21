@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- PWA -->
-<link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 
-<!-- iOS PWA Support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mafia Game">
 
-<!-- Icons -->
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" sizes="192x192" href="icon-192.png">
 <link rel="icon" sizes="512x512" href="icon-512.png">
@@ -44,6 +41,34 @@ body{
   align-items:center;
 }
 
+/* --- FLOATING BACK BUTTON --- */
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  color: white;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100; /* Under splash screen, above everything else */
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
 /* 🌌 BACKGROUND FLOATING EMOJIS */
 .bg-emoji{
   position:absolute;
@@ -57,8 +82,6 @@ body{
   to{transform:translateY(-120px)}
 }
 
-
-
 /* 🎴 MAIN CARD */
 .card{
   position:relative;
@@ -70,6 +93,7 @@ body{
   text-align:center;
   box-shadow:0 30px 60px rgba(0,0,0,.7);
   animation:fadeUp .8s ease;
+  z-index: 10;
 }
 
 @keyframes fadeUp{
@@ -134,6 +158,10 @@ button:hover{
   box-shadow:0 12px 30px rgba(0,0,0,.4);
 }
 
+button:active{
+  transform:scale(.97);
+}
+
 .admin{
   background:linear-gradient(135deg,#ef4444,#b91c1c);
   color:white;
@@ -157,7 +185,8 @@ button:hover{
   font-size:12px;
   color:var(--muted);
 }
-  /* SPLASH SCREEN */
+
+/* SPLASH SCREEN */
 #splash {
   position: fixed;
   inset: 0;
@@ -206,16 +235,12 @@ button:hover{
 @keyframes fadeOut {
   to { opacity: 0; visibility: hidden; }
 }
-  button:active{
-	transform:scale(.97);
-}
-
 
 </style>
 </head>
 
 <body>
-<!-- SPLASH SCREEN -->
+
 <div id="splash">
   <div class="splash-content">
     <div class="logo">🎭</div>
@@ -224,17 +249,18 @@ button:hover{
   </div>
 </div>
 
-<!-- 🌌 BACKGROUND EMOJIS -->
+<a href="index.html" class="back-btn">
+    <span>⬅️</span> Back to Hub
+</a>
+
 <span class="bg-emoji" style="left:10%;animation-duration:18s;">😈</span>
 <span class="bg-emoji" style="left:40%;animation-duration:22s;">🧑</span>
 <span class="bg-emoji" style="left:70%;animation-duration:20s;">🩺</span>
 <span class="bg-emoji" style="left:85%;animation-duration:26s;">😈</span>
 <span class="bg-emoji" style="left:25%;animation-duration:24s;">🧑</span>
 
-<!-- 🎴 CARD -->
 <div class="card">
 
-  <!-- FLOATING CARD EMOJIS -->
   <span class="card-emoji one">😈</span>
   <span class="card-emoji two">🧑</span>
   <span class="card-emoji three">🩺</span>
@@ -272,19 +298,18 @@ function goHow(){
   location.href = "how_to_play.html";
 }
 document.getElementById("year").textContent = new Date().getFullYear();
-</script>
-  <script>
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
-    const icons = ["🎭","😈","🩺","🕵️"];
+
+const icons = ["🎭","😈","🩺","🕵️"];
 let i = 0;
 setInterval(()=>{
-  document.querySelector(".logo").textContent = icons[i++ % icons.length];
+  const logoEl = document.querySelector(".logo");
+  if(logoEl) logoEl.textContent = icons[i++ % icons.length];
 },600);
 
-</script>
-<script>
 window.addEventListener("load", () => {
   setTimeout(() => {
     const splash = document.getElementById("splash");
@@ -293,10 +318,5 @@ window.addEventListener("load", () => {
 });
 </script>
 
-
 </body>
 </html>
-
-
-
-
