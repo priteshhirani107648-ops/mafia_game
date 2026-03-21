@@ -231,7 +231,27 @@ button{
   50%{ transform:scale(1.2); }
 }
 
-
+/* --- FLOATING BACK BUTTON --- */
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  color: white;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100; /* Under splash screen, above everything else */
+}
 </style>
 </head>
 
@@ -538,7 +558,9 @@ window.addEventListener("load", () => {
     <button class="confirm-btn" onclick="closeAlert()">OK</button>
   </div>
 </div>
+<a href="index.html" class="back-btn">
+    <span>⬅️</span> Back to Hub
+</a>
 
 </body>
 </html>
-
