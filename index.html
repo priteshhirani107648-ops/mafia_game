@@ -92,9 +92,11 @@
         left: 200%;
     }
 
+    /* Card Glow Hover Effects */
     .card.mafia:hover { box-shadow: 0 20px 40px rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.3); }
     .card.guess:hover { box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.3); }
     .card.match:hover { box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.3); }
+    .card.focus:hover { box-shadow: 0 20px 40px rgba(52, 211, 153, 0.2); border-color: rgba(52, 211, 153, 0.3); }
 
     .card-icon {
         font-size: 64px;
@@ -131,6 +133,7 @@
         width: 100%;
     }
 
+    /* Button Colors */
     .btn-red { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
     .btn-red:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6); transform: translateY(-2px); }
 
@@ -139,6 +142,10 @@
 
     .btn-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
     .btn-purple:hover { box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6); transform: translateY(-2px); }
+
+    /* The missing Green Button CSS! */
+    .btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+    .btn-green:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); transform: translateY(-2px); }
 
     @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -154,10 +161,16 @@
 
     <header>
         <h1>My Web Arcade 🕹️</h1>
-        <p class="subtitle">Select a game to start playing</p>
+        <p class="subtitle">Select an experience to start</p>
     </header>
 
     <div class="game-grid">
+  <div class="card focus">
+            <div class="card-icon">🌿</div>
+            <h3>Zen Focus Tree</h3>
+            <p>Plant a seed, put your phone down, and focus. Grow your digital garden while caring for your mind.</p>
+            <a href="zen-tree.html" class="play-btn btn-green" onclick="playClickSound(event)">Start Growing</a>
+        </div>
         <div class="card mafia">
             <div class="card-icon">🕵️‍♂️</div>
             <h3>Mafia Mystery</h3>
@@ -178,6 +191,8 @@
             <p>Train your brain and test your memory by finding all the matching pairs in record time.</p>
             <a href="emoji-match.html" class="play-btn btn-purple" onclick="playClickSound(event)">Play Match-Up</a>
         </div>
+
+      
     </div>
 
     <script>
