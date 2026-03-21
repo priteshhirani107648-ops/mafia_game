@@ -21,6 +21,34 @@
         position: relative; /* For floating animations */
     }
 
+    /* --- FLOATING BACK BUTTON --- */
+    .back-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        color: white;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 100; /* Keeps it above everything else */
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
     .card {
         background: rgba(30, 41, 59, 0.7);
         backdrop-filter: blur(12px);
@@ -31,7 +59,7 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         border: 1px solid rgba(255, 255, 255, 0.05);
         transition: transform 0.3s ease;
-        z-index: 10; /* Keep above floating animations */
+        z-index: 10;
     }
 
     h2 {
@@ -146,6 +174,10 @@
 </head>
 <body>
 
+<a href="index.html" class="back-btn">
+    <span>⬅️</span> Back to Hub
+</a>
+
 <div class="card" id="gameCard">
     <div id="menuPanel">
         <h2>Select Game Mode 🎮</h2>
@@ -240,8 +272,8 @@
         }
     };
 
-    // Attach click sound to all buttons
-    document.querySelectorAll('button').forEach(btn => {
+    // Attach click sound to all buttons AND the back button
+    document.querySelectorAll('button, .back-btn').forEach(btn => {
         btn.addEventListener('click', () => { initAudio(); sfx.click(); });
     });
 
@@ -355,7 +387,7 @@
             userGameOver = true; document.getElementById("guessInput").disabled = true;
             document.getElementById("guessBtn").style.display = "none"; document.getElementById("playAgainBtn").style.display = "block";
         } else {
-            if (maxLives - attempts === 0) { sfx.lose(); triggerSideAnimation('💀', 8); } // Just ran out of lives
+            if (maxLives - attempts === 0) { sfx.lose(); triggerSideAnimation('💀', 8); } 
             
             if (guess < secretNum) {
                 document.getElementById("result").innerHTML = "🥶 <strong>Too Low!</strong>";
@@ -397,7 +429,7 @@
         if (livesLeft <= 0) {
             document.getElementById("compResult").innerHTML = "🧠 <strong>You are smart!</strong> Let me keep trying!";
             document.getElementById("compResult").style.color = "#a855f7";
-            if (livesLeft === 0) { sfx.lose(); triggerSideAnimation('🧠', 8); } // Only play big lose sound on exactly 0
+            if (livesLeft === 0) { sfx.lose(); triggerSideAnimation('🧠', 8); } 
         }
 
         updateLivesDisplay("compTries", compAttempts - 1);
