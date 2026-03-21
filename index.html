@@ -25,7 +25,6 @@
         overflow-x: hidden;
     }
 
-    /* --- Header Styles --- */
     header {
         text-align: center;
         margin-bottom: 50px;
@@ -48,7 +47,6 @@
         font-weight: 500;
     }
 
-    /* --- Game Grid --- */
     .game-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -58,7 +56,6 @@
         animation: fadeInUp 0.8s ease-out 0.2s both;
     }
 
-    /* --- Game Cards --- */
     .card {
         background: rgba(30, 41, 59, 0.6);
         backdrop-filter: blur(12px);
@@ -95,11 +92,9 @@
         left: 200%;
     }
 
-    /* Custom Glow Effects for Specific Cards */
     .card.mafia:hover { box-shadow: 0 20px 40px rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.3); }
     .card.guess:hover { box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.3); }
-    .card.coming-soon { opacity: 0.7; filter: grayscale(0.5); border-style: dashed; }
-    .card.coming-soon:hover { transform: none; box-shadow: none; filter: grayscale(0); opacity: 1; }
+    .card.match:hover { box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.3); }
 
     .card-icon {
         font-size: 64px;
@@ -142,16 +137,16 @@
     .btn-blue { background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
     .btn-blue:hover { box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); transform: translateY(-2px); }
 
-    .btn-disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+    .btn-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
+    .btn-purple:hover { box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6); transform: translateY(-2px); }
 
-    /* --- Animations --- */
-    @keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+        h1 { font-size: 32px; }
+        .card { min-height: 280px; }
     }
 </style>
 </head>
@@ -163,7 +158,6 @@
     </header>
 
     <div class="game-grid">
-        
         <div class="card mafia">
             <div class="card-icon">🕵️‍♂️</div>
             <h3>Mafia Mystery</h3>
@@ -175,32 +169,28 @@
             <div class="card-icon">🎯</div>
             <h3>Number Guesser</h3>
             <p>Challenge the AI or let the AI challenge you in this ultimate high-low prediction game.</p>
-            <a href="guessing_game.html" class="play-btn btn-blue" onclick="playClickSound(event)">Play Guesser</a>
+            <a href="guessing-game.html" class="play-btn btn-blue" onclick="playClickSound(event)">Play Guesser</a>
         </div>
 
-        <div class="card coming-soon">
-            <div class="card-icon">🚧</div>
-            <h3>Coming Soon</h3>
-            <p>A new exciting game is currently in development. Check back later for updates!</p>
-            <button class="play-btn btn-disabled" disabled>Locked</button>
+        <div class="card match">
+            <div class="card-icon">🃏</div>
+            <h3>Emoji Match-Up</h3>
+            <p>Train your brain and test your memory by finding all the matching pairs in record time.</p>
+            <a href="emoji-match.html" class="play-btn btn-purple" onclick="playClickSound(event)">Play Match-Up</a>
         </div>
-
     </div>
 
     <script>
-        // Synthesizer for a modern tech "click" sound when opening a game
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
         function playClickSound(event) {
-            // Prevent the link from opening immediately so we hear the sound
             event.preventDefault(); 
             const targetUrl = event.currentTarget.href;
 
             if (!audioCtx) audioCtx = new AudioContext();
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            // Create a quick, futuristic "bloop" sound
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
@@ -217,12 +207,8 @@
             osc.start();
             osc.stop(audioCtx.currentTime + 0.1);
 
-            // Navigate to the game page after a tiny delay
-            setTimeout(() => {
-                window.location.href = targetUrl;
-            }, 150);
+            setTimeout(() => { window.location.href = targetUrl; }, 150);
         }
     </script>
-
 </body>
 </html>
