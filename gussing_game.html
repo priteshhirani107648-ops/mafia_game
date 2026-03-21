@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Number Guessing Game</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+        position: relative; /* For floating animations */
+    }
+
+    .card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        padding: 40px 30px;
+        border-radius: 24px;
+        text-align: center;
+        width: 380px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease;
+        z-index: 10; /* Keep above floating animations */
+    }
+
+    h2 {
+        font-size: 26px;
+        margin-bottom: 5px;
+        background: linear-gradient(to right, #38bdf8, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+
+    .range-inputs {
+        display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px;
+    }
+    .range-inputs input { width: 45%; margin-top: 0; }
+    .range-inputs span { color: #94a3b8; font-weight: 600; font-size: 14px; }
+    
+    .limit-setting {
+        display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;
+        background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px;
+    }
+    .limit-setting input { width: 80px; padding: 8px; font-size: 16px; }
+
+    .range-hint {
+        color: #cbd5e1; font-size: 15px; font-weight: 500; margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.1); padding: 5px 15px; border-radius: 20px; display: inline-block;
+    }
+    .range-highlight { color: #fcd34d; font-weight: 700; }
+
+    input {
+        padding: 12px 15px; width: 100%; border-radius: 12px; border: 2px solid #334155;
+        background: #0f172a; color: white; font-size: 18px; text-align: center; outline: none; transition: all 0.3s ease;
+    }
+    input:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    button {
+        margin-top: 15px; padding: 12px; width: 100%; border: none; border-radius: 12px;
+        background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color: white; font-size: 16px;
+        font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); }
+    button:active { transform: translateY(1px); }
+
+    /* Button Variants */
+    button.btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+    button.btn-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+    button.btn-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+    button.btn-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
+
+    .action-row { display: flex; gap: 10px; margin-top: 15px; }
+
+    .result { margin-top: 20px; font-size: 18px; font-weight: 600; min-height: 27px; transition: color 0.3s ease; }
+    
+    .tries { 
+        margin-top: 10px; font-size: 15px; color: #94a3b8; font-weight: 500;
+        background: rgba(0,0,0,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px;
+    }
+    .tries.danger { color: #f87171; animation: pulse 1s infinite; }
+
+    .comp-guess-display {
+        font-size: 48px; font-weight: 700; color: #fcd34d; margin: 15px 0;
+        text-shadow: 0 0 20px rgba(252, 211, 77, 0.4); animation: popIn 0.3s ease;
+    }
+
+    /* History */
+    .history-container {
+        margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 100px; overflow-y: auto;
+    }
+    .history-badge {
+        padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 4px;
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .badge-high { background: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.4); }
+    .badge-low { background: rgba(96, 165, 250, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.4); }
+    .history-container::-webkit-scrollbar { width: 6px; }
+    .history-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+    /* Side Animation Elements */
+    .floating-emoji {
+        position: absolute;
+        font-size: 30px;
+        bottom: -50px;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.8;
+        animation: floatUp 2.5s ease-in forwards;
+    }
+
+    /* Animations */
+    .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    .tada { animation: tada 1s ease-in-out both; }
+
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(-110vh) scale(1.5) rotate(360deg); opacity: 0; }
+    }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+    @keyframes tada {
+        0% { transform: scale(1); } 10%, 20% { transform: scale(0.9) rotate(-3deg); }
+        30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); } 40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+        100% { transform: scale(1) rotate(0); }
+    }
+</style>
+</head>
+<body>
+
+<div class="card" id="gameCard">
+    <div id="menuPanel">
+        <h2>Select Game Mode 🎮</h2>
+        <p class="subtitle">Who is doing the guessing?</p>
+        <button onclick="goToSetup('user')">🙋‍♂️ I will guess</button>
+        <button class="btn-purple" onclick="goToSetup('comp')">🤖 Computer will guess</button>
+    </div>
+
+    <div id="setupPanel" style="display: none;">
+        <h2>Game Settings ⚙️</h2>
+        <p class="subtitle">Set the rules for this round</p>
+        <div class="range-inputs">
+            <input type="number" id="minInput" value="1" placeholder="Min">
+            <span>to</span>
+            <input type="number" id="maxInput" value="100" placeholder="Max">
+        </div>
+        <div class="limit-setting">
+            <span>❤️ Official Lives:</span>
+            <input type="number" id="livesInput" value="7" placeholder="Lives">
+        </div>
+        <div class="result" id="setupResult"></div>
+        <button onclick="startGame()">Start Game</button>
+        <button class="btn-red" style="margin-top: 10px;" onclick="showMenu()">Cancel</button>
+    </div>
+
+    <div id="playPanel" style="display: none;">
+        <h2>You Guess 🎯</h2>
+        <div class="range-hint">
+            Between <span class="range-highlight" id="minDisplay">1</span> and <span class="range-highlight" id="maxDisplay">100</span>
+        </div>
+        <input type="number" id="guessInput" placeholder="Enter your guess...">
+        <button id="guessBtn" onclick="checkUserGuess()">Make a Guess</button>
+        <button id="playAgainBtn" class="btn-green" style="display:none;" onclick="showMenu()">Main Menu 🏠</button>
+        <div class="result" id="result"></div>
+        <div class="tries" id="tries"></div>
+        <div class="history-container" id="historyContainer"></div>
+    </div>
+
+    <div id="compPanel" style="display: none;">
+        <h2>Computer Guesses 🤖</h2>
+        <p class="subtitle">Think of a number between <span id="compMinDisp">1</span> and <span id="compMaxDisp">100</span>...</p>
+        <p style="color: #94a3b8; font-size: 14px;">Is your number:</p>
+        <div class="comp-guess-display" id="compGuessText">50</div>
+        <div id="compControls" class="action-row">
+            <button class="btn-blue" onclick="compFeedback('low')">🥶 Higher</button>
+            <button class="btn-green" onclick="compFeedback('correct')">🎉 Correct!</button>
+            <button class="btn-red" onclick="compFeedback('high')">🥵 Lower</button>
+        </div>
+        <button id="compPlayAgainBtn" class="btn-green" style="display:none; margin-top: 20px;" onclick="showMenu()">Main Menu 🏠</button>
+        <div class="result" id="compResult"></div>
+        <div class="tries" id="compTries"></div>
+        <div class="history-container" id="compHistoryContainer"></div>
+    </div>
+</div>
+
+<script>
+    // --- SYNTHESIZED SOUND SYSTEM (No external files needed) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol = 0.1) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+        click: () => playTone(600, 'sine', 0.1, 0.05),
+        error: () => playTone(150, 'sawtooth', 0.3, 0.1),
+        high: () => { playTone(400, 'triangle', 0.1); setTimeout(() => playTone(300, 'triangle', 0.2), 100); },
+        low: () => { playTone(300, 'triangle', 0.1); setTimeout(() => playTone(500, 'triangle', 0.2), 100); },
+        win: () => {
+            playTone(400, 'sine', 0.1); setTimeout(() => playTone(500, 'sine', 0.1), 100);
+            setTimeout(() => playTone(600, 'sine', 0.2), 200); setTimeout(() => playTone(800, 'sine', 0.4), 300);
+        },
+        lose: () => {
+            playTone(300, 'sawtooth', 0.2); setTimeout(() => playTone(250, 'sawtooth', 0.2), 200);
+            setTimeout(() => playTone(200, 'sawtooth', 0.4), 400);
+        }
+    };
+
+    // Attach click sound to all buttons
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => { initAudio(); sfx.click(); });
+    });
+
+    // --- SIDE ANIMATION SYSTEM ---
+    function triggerSideAnimation(emoji, count = 5) {
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                const el = document.createElement('div');
+                el.className = 'floating-emoji';
+                el.innerText = emoji;
+                // Randomly place on left (0-20%) or right (80-100%) side
+                const isLeft = Math.random() > 0.5;
+                const xPos = isLeft ? Math.random() * 20 : 80 + Math.random() * 20;
+                el.style.left = `${xPos}vw`;
+                // Randomize animation speed slightly
+                el.style.animationDuration = `${2 + Math.random() * 1.5}s`;
+                document.body.appendChild(el);
+                
+                // Clean up after animation
+                setTimeout(() => el.remove(), 4000);
+            }, i * 150); // Stagger the spawn
+        }
+    }
+
+    // --- GAME LOGIC ---
+    let activeMode = 'user', currentMin = 1, currentMax = 100, maxLives = 7;
+    let secretNum, attempts = 0, userGameOver = false, trackMin = 1, trackMax = 100;
+    let compMin = 1, compMax = 100, compGuess = 50, compAttempts = 0, compGameOver = false;
+
+    const card = document.getElementById("gameCard");
+
+    function hideAllPanels() {
+        ["menuPanel", "setupPanel", "playPanel", "compPanel"].forEach(id => {
+            document.getElementById(id).style.display = "none";
+        });
+        card.classList.remove('shake', 'tada');
+    }
+
+    function showMenu() { hideAllPanels(); document.getElementById("menuPanel").style.display = "block"; }
+
+    function goToSetup(mode) {
+        activeMode = mode; hideAllPanels(); document.getElementById("setupPanel").style.display = "block";
+    }
+
+    function triggerAnim(anim) {
+        card.classList.remove('shake', 'tada'); void card.offsetWidth; card.classList.add(anim);
+    }
+
+    function startGame() {
+        let min = Number(document.getElementById("minInput").value);
+        let max = Number(document.getElementById("maxInput").value);
+        let lives = Number(document.getElementById("livesInput").value);
+
+        if (isNaN(min) || isNaN(max) || min >= max || isNaN(lives) || lives < 1) {
+            document.getElementById("setupResult").innerHTML = "⚠️ <span>Invalid settings!</span>";
+            sfx.error(); triggerAnim('shake'); return;
+        }
+
+        currentMin = min; currentMax = max; maxLives = lives;
+        hideAllPanels();
+
+        if (activeMode === 'user') initUserGame(); else initCompGame();
+    }
+
+    function updateLivesDisplay(elId, currAttempts) {
+        let livesLeft = maxLives - currAttempts;
+        let el = document.getElementById(elId);
+        if (livesLeft < 0) {
+            el.innerHTML = `💀 Out of Lives! (Extra Tries: ${Math.abs(livesLeft)})`;
+            el.classList.add("danger");
+        } else {
+            el.innerHTML = `❤️ Guesses Left: <strong>${livesLeft}</strong>`;
+            if (livesLeft <= 2) el.classList.add("danger"); else el.classList.remove("danger");
+        }
+    }
+
+    // --- MODE 1: User Guesses ---
+    function initUserGame() {
+        secretNum = Math.floor(Math.random() * (currentMax - currentMin + 1)) + currentMin;
+        attempts = 0; userGameOver = false; trackMin = currentMin; trackMax = currentMax;
+        document.getElementById("result").innerHTML = ""; updateLivesDisplay("tries", attempts);
+        document.getElementById("historyContainer").innerHTML = ""; document.getElementById("guessInput").value = "";
+        document.getElementById("guessInput").disabled = false; document.getElementById("guessBtn").style.display = "block";
+        document.getElementById("playAgainBtn").style.display = "none";
+        updateUserRange(); document.getElementById("playPanel").style.display = "block"; document.getElementById("guessInput").focus();
+    }
+
+    function updateUserRange() {
+        document.getElementById("minDisplay").innerText = trackMin; document.getElementById("maxDisplay").innerText = trackMax;
+    }
+
+    document.getElementById("guessInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !userGameOver) { initAudio(); checkUserGuess(); }
+    });
+
+    function checkUserGuess() {
+        if (userGameOver) return;
+        let guess = Number(document.getElementById("guessInput").value);
+
+        if (!guess || guess < currentMin || guess > currentMax) {
+            sfx.error(); triggerAnim('shake'); triggerSideAnimation('⚠️', 3); return;
+        }
+
+        attempts++; updateLivesDisplay("tries", attempts);
+
+        if (guess === secretNum) {
+            document.getElementById("result").innerHTML = "🎉 <strong>Bullseye!</strong> 🏆";
+            document.getElementById("result").style.color = "#4ade80";
+            sfx.win(); triggerAnim('tada'); triggerSideAnimation('🎉', 15);
+            addHistory("historyContainer", guess, "win");
+            userGameOver = true; document.getElementById("guessInput").disabled = true;
+            document.getElementById("guessBtn").style.display = "none"; document.getElementById("playAgainBtn").style.display = "block";
+        } else {
+            if (maxLives - attempts === 0) { sfx.lose(); triggerSideAnimation('💀', 8); } // Just ran out of lives
+            
+            if (guess < secretNum) {
+                document.getElementById("result").innerHTML = "🥶 <strong>Too Low!</strong>";
+                document.getElementById("result").style.color = "#60a5fa";
+                if(maxLives - attempts !== 0) { sfx.low(); triggerSideAnimation('🥶', 4); }
+                if (guess >= trackMin) { trackMin = guess + 1; updateUserRange(); }
+            } else {
+                document.getElementById("result").innerHTML = "🥵 <strong>Too High!</strong>";
+                document.getElementById("result").style.color = "#f87171";
+                if(maxLives - attempts !== 0) { sfx.high(); triggerSideAnimation('🥵', 4); }
+                if (guess <= trackMax) { trackMax = guess - 1; updateUserRange(); }
+            }
+            triggerAnim('shake'); addHistory("historyContainer", guess, guess < secretNum ? "low" : "high");
+        }
+        document.getElementById("guessInput").value = "";
+    }
+
+    // --- MODE 2: Computer Guesses ---
+    function initCompGame() {
+        compMin = currentMin; compMax = currentMax; compAttempts = 0; compGameOver = false;
+        document.getElementById("compMinDisp").innerText = compMin; document.getElementById("compMaxDisp").innerText = compMax;
+        document.getElementById("compResult").innerHTML = ""; updateLivesDisplay("compTries", compAttempts);
+        document.getElementById("compHistoryContainer").innerHTML = "";
+        document.getElementById("compControls").style.display = "flex"; document.getElementById("compPlayAgainBtn").style.display = "none";
+        document.getElementById("compPanel").style.display = "block"; makeCompGuess();
+    }
+
+    function makeCompGuess() {
+        if (compMin > compMax) {
+            document.getElementById("compResult").innerHTML = "🤔 <strong>Wait...</strong> Did you change your number?";
+            document.getElementById("compResult").style.color = "#fbbf24";
+            sfx.error(); triggerAnim('shake'); triggerSideAnimation('❓', 5);
+            compGameOver = true; document.getElementById("compControls").style.display = "none";
+            document.getElementById("compPlayAgainBtn").style.display = "block"; return;
+        }
+        
+        compAttempts++;
+        let livesLeft = maxLives - compAttempts + 1;
+        if (livesLeft <= 0) {
+            document.getElementById("compResult").innerHTML = "🧠 <strong>You are smart!</strong> Let me keep trying!";
+            document.getElementById("compResult").style.color = "#a855f7";
+            if (livesLeft === 0) { sfx.lose(); triggerSideAnimation('🧠', 8); } // Only play big lose sound on exactly 0
+        }
+
+        updateLivesDisplay("compTries", compAttempts - 1);
+        compGuess = Math.floor(Math.random() * (compMax - compMin + 1)) + compMin;
+        
+        const guessTxt = document.getElementById("compGuessText");
+        guessTxt.style.animation = 'none'; setTimeout(() => guessTxt.style.animation = 'popIn 0.3s ease', 10);
+        guessTxt.innerText = compGuess;
+    }
+
+    function compFeedback(feedback) {
+        if (compGameOver) return;
+
+        if (feedback === 'correct') {
+            document.getElementById("compResult").innerHTML = "🤖 <strong>I got it!</strong> 🎉";
+            document.getElementById("compResult").style.color = "#4ade80";
+            updateLivesDisplay("compTries", compAttempts);
+            sfx.win(); triggerAnim('tada'); triggerSideAnimation('🤖', 10);
+            addHistory("compHistoryContainer", compGuess, "win");
+            compGameOver = true; document.getElementById("compControls").style.display = "none";
+            document.getElementById("compPlayAgainBtn").style.display = "block";
+        } else if (feedback === 'high') {
+            sfx.high(); triggerSideAnimation('🥵', 3);
+            addHistory("compHistoryContainer", compGuess, "high"); compMax = compGuess - 1; makeCompGuess();
+        } else if (feedback === 'low') {
+            sfx.low(); triggerSideAnimation('🥶', 3);
+            addHistory("compHistoryContainer", compGuess, "low"); compMin = compGuess + 1; makeCompGuess();
+        }
+    }
+
+    function addHistory(containerId, guess, type) {
+        const badge = document.createElement("div");
+        if (type === "high") { badge.className = "history-badge badge-high"; badge.innerHTML = `${guess} 🥵`; } 
+        else if (type === "low") { badge.className = "history-badge badge-low"; badge.innerHTML = `${guess} 🥶`; } 
+        else {
+            badge.className = "history-badge"; badge.style.background = "rgba(74, 222, 128, 0.2)";
+            badge.style.color = "#4ade80"; badge.style.border = "1px solid rgba(74, 222, 128, 0.4)"; badge.innerHTML = `${guess} 🎉`;
+        }
+        document.getElementById(containerId).prepend(badge);
+    }
+</script>
+
+</body>
+</html>
