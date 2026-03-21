@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zen Focus Tree</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        /* FIX: Changed from hidden to auto so small screens can scroll! */
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 80px 20px 40px; 
+        position: relative;
+    }
+
+    /* --- AMBIENT FIREFLIES --- */
+    .firefly {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        background: #6ee7b7;
+        border-radius: 50%;
+        box-shadow: 0 0 10px 2px #34d399;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 1;
+        animation: drift 10s infinite linear;
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        color: white;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 1000;
+    }
+
+    .back-btn:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
+
+    /* --- RESPONSIVE CONTAINER --- */
+    .card-container {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(16px);
+        padding: 40px 30px;
+        border-radius: 30px;
+        text-align: center;
+        width: 100%;
+        max-width: 420px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 10;
+        animation: fadeUp 0.6s ease;
+        margin: auto;
+        position: relative; /* Anchor for watering can */
+    }
+
+    h2 {
+        font-size: clamp(24px, 7vw, 30px);
+        margin-bottom: 5px;
+        background: linear-gradient(to right, #34d399, #38bdf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 25px; transition: color 0.3s ease; }
+
+    /* --- THE GROWING TREE --- */
+    .tree-stage {
+        font-size: 100px;
+        height: 130px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        filter: drop-shadow(0 10px 20px rgba(52, 211, 153, 0.3));
+        transition: all 1s ease;
+        animation: breathe 4s ease-in-out infinite;
+        position: relative;
+    }
+
+    /* --- WATERING ANIMATION ELEMENTS --- */
+    .watering-can {
+        position: absolute;
+        top: -20px;
+        right: 60px;
+        font-size: 60px;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 20;
+    }
+
+    .water-drop {
+        position: absolute;
+        font-size: 20px;
+        top: 30px;
+        right: 120px;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 15;
+    }
+
+    .timer-display {
+        font-size: clamp(40px, 10vw, 56px);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #f8fafc;
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+    }
+
+    .affirmation {
+        font-size: 14px;
+        color: #6ee7b7;
+        font-weight: 500;
+        min-height: 42px;
+        margin-bottom: 25px;
+        font-style: italic;
+        transition: opacity 0.5s ease;
+    }
+
+    /* --- BUTTONS & INPUTS --- */
+    .time-selector {
+        display: flex;
+        flex-wrap: wrap; /* FIX: Allows buttons to wrap on very small phones */
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .custom-time-selector {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .custom-time-selector input {
+        flex: 2;
+        padding: 12px 15px;
+        border-radius: 12px;
+        border: 2px solid #34d399;
+        background: rgba(0,0,0,0.2);
+        color: white;
+        font-size: 16px;
+        text-align: center;
+        outline: none;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .custom-time-selector input:focus { box-shadow: 0 0 15px rgba(52, 211, 153, 0.4); }
+    .custom-time-selector input::-webkit-outer-spin-button,
+    .custom-time-selector input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    button {
+        flex: 1 1 30%; /* Let buttons stretch naturally */
+        min-width: 80px;
+        padding: 12px 10px;
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-size: clamp(13px, 3vw, 15px);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+    .btn-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+    .btn-outline { background: transparent; border: 2px solid #34d399; color: #34d399; }
+
+    button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    button:active { transform: translateY(1px); }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    
+    @keyframes tiltCan {
+        0% { transform: rotate(0deg) scale(0); opacity: 0; }
+        20% { transform: rotate(-30deg) scale(1.2); opacity: 1; }
+        80% { transform: rotate(-30deg) scale(1.2); opacity: 1; }
+        100% { transform: rotate(0deg) scale(0); opacity: 0; }
+    }
+    
+    @keyframes fallDrop {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(60px) scale(0.5); opacity: 0; }
+    }
+
+    @keyframes drift {
+        0% { transform: translateY(100vh) translateX(0) scale(1); opacity: 0; }
+        20% { opacity: 0.8; }
+        80% { opacity: 0.8; }
+        100% { transform: translateY(-10vh) translateX(50px) scale(1.5); opacity: 0; }
+    }
+
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+    .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    .watering-can-anim { animation: tiltCan 2.5s forwards; }
+    .drop-anim { animation: fallDrop 0.8s forwards; }
+</style>
+</head>
+<body>
+
+<div id="fireflyContainer"></div>
+
+<a href="index.html" class="back-btn">
+    <span>⬅️</span> Back to Hub
+</a>
+
+<div class="card-container" id="gameCard">
+    <h2>Zen Focus 🌿</h2>
+    <p class="subtitle" id="statusText">Plant a seed. Focus your mind.</p>
+
+    <div class="tree-stage" id="treeEmoji">
+        🌰
+        <div id="waterCan" class="watering-can">🚿</div>
+    </div>
+    
+    <div class="timer-display" id="timer">00:00</div>
+    
+    <div class="affirmation" id="affirmationText">Ready to grow?</div>
+
+    <div id="setupControls">
+        <div class="time-selector">
+            <button class="btn-outline" onclick="initiateWatering(1)">1 Min<br><small>Breathe</small></button>
+            <button class="btn-outline" onclick="initiateWatering(5)">5 Min<br><small>Break</small></button>
+            <button class="btn-outline" onclick="initiateWatering(25)">25 Min<br><small>Deep Work</small></button>
+        </div>
+        
+        <div class="custom-time-selector">
+            <input type="number" id="customMinutes" placeholder="Custom (min)">
+            <button class="btn-green" onclick="startCustomFocus()">Start</button>
+        </div>
+    </div>
+
+    <div id="activeControls" style="display: none;">
+        <button class="btn-red" onclick="giveUp()">Give Up 🍂</button>
+    </div>
+    
+    <div id="winControls" style="display: none;">
+        <button class="btn-green" onclick="resetApp()">Plant Another Seed 🌱</button>
+    </div>
+</div>
+
+<script>
+    // --- BACKGROUND FIREFLIES ---
+    const fireflyContainer = document.getElementById('fireflyContainer');
+    for(let i = 0; i < 15; i++) {
+        let bug = document.createElement('div');
+        bug.classList.add('firefly');
+        bug.style.left = `${Math.random() * 100}vw`;
+        bug.style.animationDuration = `${8 + Math.random() * 10}s`;
+        bug.style.animationDelay = `${Math.random() * 5}s`;
+        fireflyContainer.appendChild(bug);
+    }
+
+    // --- AUDIO SYSTEM ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playMeditationBowl() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(329.63, audioCtx.currentTime); 
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 1); 
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 6); 
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 6);
+    }
+
+    function playWaterDrop() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; 
+        // Quick high pitch slide for a magical water drop sound
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playFailSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // --- GAME LOGIC ---
+    const treeStages = ['🌰', '🌱', '🌿', '🌳', '🌸'];
+    const affirmations = [
+        "Inhale courage, exhale doubt.",
+        "You are exactly where you need to be.",
+        "Hydrate bestie, you're doing great.",
+        "Main character energy is focusing on yourself.",
+        "Small steps are still progress.",
+        "Put the phone down, protect your peace.",
+        "Your mind is a garden. Water it."
+    ];
+
+    let timerInterval, affirmationInterval;
+    let timeLeft = 0, totalTime = 0;
+
+    const timerDisplay = document.getElementById('timer');
+    const treeEmoji = document.getElementById('treeEmoji');
+    const waterCan = document.getElementById('waterCan');
+    const affirmationText = document.getElementById('affirmationText');
+    const statusText = document.getElementById('statusText');
+    const setupControls = document.getElementById('setupControls');
+    const activeControls = document.getElementById('activeControls');
+    const winControls = document.getElementById('winControls');
+    const gameCard = document.getElementById('gameCard');
+    const customInput = document.getElementById('customMinutes');
+
+    function updateDisplay() {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        let percentComplete = 1 - (timeLeft / totalTime);
+        let stageIndex = Math.floor(percentComplete * treeStages.length);
+        if (stageIndex >= treeStages.length) stageIndex = treeStages.length - 1;
+        
+        // Don't overwrite the watering can HTML while updating the tree emoji
+        if (!treeEmoji.innerHTML.includes(treeStages[stageIndex])) {
+            treeEmoji.innerHTML = `${treeStages[stageIndex]}<div id="waterCan" class="watering-can">🚿</div>`;
+            treeEmoji.style.animation = 'none'; void treeEmoji.offsetWidth; 
+            treeEmoji.style.animation = 'popIn 0.5s ease, breathe 4s ease-in-out infinite';
+        }
+    }
+
+    function rotateAffirmation() {
+        affirmationText.style.opacity = 0;
+        setTimeout(() => {
+            affirmationText.innerText = affirmations[Math.floor(Math.random() * affirmations.length)];
+            affirmationText.style.opacity = 1;
+        }, 500);
+    }
+
+    function startCustomFocus() {
+        let mins = parseInt(customInput.value);
+        if (isNaN(mins) || mins <= 0) {
+            gameCard.classList.remove('shake-anim'); void gameCard.offsetWidth;
+            gameCard.classList.add('shake-anim');
+            statusText.innerText = "⚠️ Enter a valid number!";
+            statusText.style.color = "#f87171"; 
+            return;
+        }
+        if (mins > 120) mins = 120;
+        initiateWatering(mins);
+    }
+
+    customInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') startCustomFocus(); });
+
+    // --- WATERING ANIMATION ---
+    function initiateWatering(minutes) {
+        initAudio();
+        setupControls.style.display = 'none';
+        statusText.innerText = "Watering your seed...";
+        statusText.style.color = "#38bdf8"; // Water blue text
+        
+        const can = document.getElementById('waterCan');
+        can.classList.add('watering-can-anim');
+
+        // Create 4 water drops staggered
+        for(let i=0; i<4; i++) {
+            setTimeout(() => {
+                playWaterDrop();
+                let drop = document.createElement('div');
+                drop.innerText = '💧';
+                drop.className = 'water-drop';
+                // Slight random offset for organic feel
+                drop.style.right = `${110 + (Math.random() * 20)}px`;
+                treeEmoji.appendChild(drop);
+                drop.classList.add('drop-anim');
+                
+                setTimeout(() => drop.remove(), 800);
+            }, 600 + (i * 300));
+        }
+
+        // Wait 2.5 seconds for watering to finish, then start the actual timer
+        setTimeout(() => {
+            can.classList.remove('watering-can-anim');
+            startFocus(minutes);
+        }, 2500);
+    }
+
+    function startFocus(minutes) {
+        playMeditationBowl();
+        totalTime = minutes * 60;
+        timeLeft = totalTime;
+        
+        activeControls.style.display = 'block';
+        winControls.style.display = 'none';
+        statusText.innerText = "Focus deeply. Do not leave.";
+        statusText.style.color = "#94a3b8"; 
+        
+        updateDisplay();
+        rotateAffirmation();
+        
+        affirmationInterval = setInterval(rotateAffirmation, 8000);
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+            if (timeLeft <= 0) completeFocus();
+        }, 1000);
+    }
+
+    function completeFocus() {
+        clearInterval(timerInterval); clearInterval(affirmationInterval);
+        playMeditationBowl(); setTimeout(playMeditationBowl, 2000); 
+        
+        treeEmoji.innerHTML = `🌸<div id="waterCan" class="watering-can">🚿</div>`;
+        statusText.innerText = "Beautiful! Your mind has grown.";
+        affirmationText.innerText = "Take a deep breath and enjoy your success.";
+        
+        activeControls.style.display = 'none';
+        winControls.style.display = 'block';
+    }
+
+    function giveUp() {
+        initAudio(); playFailSound();
+        clearInterval(timerInterval); clearInterval(affirmationInterval);
+        
+        treeEmoji.innerHTML = `🍂<div id="waterCan" class="watering-can">🚿</div>`;
+        statusText.innerText = "Focus broken.";
+        statusText.style.color = "#94a3b8"; 
+        affirmationText.innerText = "That's okay. Growth takes time. Try again later.";
+        
+        activeControls.style.display = 'none';
+        winControls.style.display = 'block';
+    }
+
+    function resetApp() {
+        initAudio();
+        treeEmoji.innerHTML = `🌰<div id="waterCan" class="watering-can">🚿</div>`;
+        timerDisplay.innerText = "00:00";
+        statusText.innerText = "Plant a seed. Focus your mind.";
+        statusText.style.color = "#94a3b8"; 
+        affirmationText.innerText = "Ready to grow?";
+        customInput.value = ""; 
+        
+        setupControls.style.display = 'block';
+        winControls.style.display = 'none';
+    }
+
+    document.querySelector('.back-btn').addEventListener('click', () => { initAudio(); });
+</script>
+
+</body>
+</html>
