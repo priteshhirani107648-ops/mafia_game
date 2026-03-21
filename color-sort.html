@@ -18,7 +18,7 @@
         align-items: center;
         min-height: 100vh;
         overflow-x: hidden;
-        padding: 80px 15px 30px; 
+        padding: 70px 15px 30px; 
     }
 
     .back-btn {
@@ -39,17 +39,45 @@
     }
     .back-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
 
-    .header { text-align: center; margin-bottom: 30px; }
+    .header { text-align: center; margin-bottom: 30px; width: 100%; max-width: 400px; }
     
+    /* --- LEVEL SELECTOR UI --- */
+    .level-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 5px;
+    }
+
+    .nav-arrow {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .nav-arrow:hover:not(:disabled) { background: rgba(255, 255, 255, 0.25); transform: scale(1.1); }
+    .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; transform: none; }
+
     h2 {
         font-size: clamp(26px, 7vw, 34px);
-        margin-bottom: 5px;
         background: linear-gradient(to right, #a855f7, #ec4899, #fbcfe8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin: 0 10px;
+        min-width: 120px; /* Keeps arrows from jumping around */
     }
 
-    p.subtitle { color: #c4b5fd; font-size: 14px; font-weight: 500; transition: color 0.3s ease; }
+    p.subtitle { color: #c4b5fd; font-size: 14px; font-weight: 500; transition: color 0.3s ease; margin-top: 5px; }
 
     /* --- TUBES & LIQUID --- */
     #tubesContainer {
@@ -69,7 +97,7 @@
         border-top: none;
         border-radius: 0 0 30px 30px;
         display: flex;
-        flex-direction: column-reverse; /* Stacks liquid from bottom to top */
+        flex-direction: column-reverse; 
         padding: 4px;
         background: rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(5px);
@@ -87,12 +115,11 @@
 
     .liquid {
         width: 100%;
-        height: 25%; /* 4 blocks fill the tube */
+        height: 25%; 
         transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
         box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
     }
 
-    /* Rounding the liquid edges nicely */
     .liquid:first-child { border-radius: 0 0 22px 22px; }
     .liquid:last-child { border-radius: 6px 6px 0 0; }
     .liquid:only-child { border-radius: 6px 6px 22px 22px; }
@@ -128,21 +155,28 @@
     .btn-next { background: linear-gradient(135deg, #ec4899 0%, #9d174d 100%); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); display: none; width: 100%; flex: 1 1 100%; }
     .btn-next:hover { box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6); transform: translateY(-2px); }
 
-    /* Animations */
-    @keyframes shake {
-        10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+    /* --- RESET PROGRESS BUTTON --- */
+    .reset-progress-btn {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 30px;
+        transition: all 0.2s;
+        opacity: 0.8;
     }
+    .reset-progress-btn:hover { background: rgba(239, 68, 68, 0.1); opacity: 1; }
+
+    /* Animations */
+    @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
     .shake-anim { animation: shake 0.4s ease; }
-    
     @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .tada-anim { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
-
-    @keyframes hintGlow {
-        0% { transform: translateY(0); border-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
-        50% { transform: translateY(-15px); border-color: #fcd34d; box-shadow: 0 0 30px #fcd34d; }
-        100% { transform: translateY(0); border-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
-    }
+    @keyframes hintGlow { 0% { transform: translateY(0); border-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; } 50% { transform: translateY(-15px); border-color: #fcd34d; box-shadow: 0 0 30px #fcd34d; } 100% { transform: translateY(0); border-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; } }
     .hint-anim { animation: hintGlow 1s ease-in-out infinite; z-index: 20; }
 </style>
 </head>
@@ -151,7 +185,11 @@
 <a href="index.html" class="back-btn">⬅️ Back to Hub</a>
 
 <div class="header">
-    <h2 id="levelText">Level 1</h2>
+    <div class="level-selector">
+        <button class="nav-arrow" id="prevLvlBtn" onclick="changeLevel(-1)">◀</button>
+        <h2 id="levelText">Level 1</h2>
+        <button class="nav-arrow" id="nextLvlBtn" onclick="changeLevel(1)">▶</button>
+    </div>
     <p class="subtitle" id="statusText">Tap a tube to pour colors.</p>
 </div>
 
@@ -163,6 +201,9 @@
     <button class="btn-next" id="nextBtn" onclick="nextLevel()">Next Level 🌸</button>
 </div>
 
+<button class="reset-progress-btn" onclick="resetAllProgress()" style="display: none;">
+    Reset All Progress 🗑️
+</button>
 <script>
     // --- AUDIO SYSTEM ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -219,8 +260,10 @@
     // --- GAME LOGIC ---
     const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ec4899', '#06b6d4', '#eab308'];
     
-    // Fetch saved level from LocalStorage, default to 1 if none exists
+    // Load tracking from browser memory
     let currentLevel = parseInt(localStorage.getItem('zenColorSortLevel')) || 1;
+    let maxUnlockedLevel = parseInt(localStorage.getItem('zenColorSortMaxLevel')) || currentLevel;
+    
     let tubes = [];
     let initialTubesState = [];
     let selectedTubeIndex = null;
@@ -231,6 +274,33 @@
     const statusText = document.getElementById('statusText');
     const nextBtn = document.getElementById('nextBtn');
     const hintBtn = document.getElementById('hintBtn');
+    const prevLvlBtn = document.getElementById('prevLvlBtn');
+    const nextLvlBtn = document.getElementById('nextLvlBtn');
+
+    function updateNavButtons() {
+        prevLvlBtn.disabled = (currentLevel <= 1);
+        nextLvlBtn.disabled = (currentLevel >= maxUnlockedLevel);
+    }
+
+    function changeLevel(direction) {
+        initAudio(); sfx.tap();
+        let newLevel = currentLevel + direction;
+        if (newLevel >= 1 && newLevel <= maxUnlockedLevel) {
+            currentLevel = newLevel;
+            generateLevel(currentLevel);
+        }
+    }
+
+    function resetAllProgress() {
+        initAudio(); sfx.tap();
+        if(confirm("Are you sure you want to erase all your progress and start over from Level 1?")) {
+            localStorage.setItem('zenColorSortLevel', 1);
+            localStorage.setItem('zenColorSortMaxLevel', 1);
+            currentLevel = 1;
+            maxUnlockedLevel = 1;
+            generateLevel(1);
+        }
+    }
 
     function generateLevel(lvl) {
         initAudio();
@@ -242,13 +312,14 @@
         statusText.style.color = "#c4b5fd";
         levelText.innerText = `Level ${lvl}`;
         
-        // Save level progress to browser
+        // Save current level selection
         localStorage.setItem('zenColorSortLevel', lvl);
+        updateNavButtons();
 
         // Scale difficulty slowly
         let numColors = Math.min(2 + Math.floor(lvl / 2), COLORS.length); 
         if (lvl === 1) numColors = 3;
-        let numEmpty = 2; // Always 2 empty tubes for stress-free logic
+        let numEmpty = 2; // Always 2 empty tubes
 
         let tempTubes = [];
         for (let i = 0; i < numColors; i++) {
@@ -258,7 +329,7 @@
             tempTubes.push([]);
         }
 
-        // Mathematically shuffle the board backwards (ensures it is 100% solvable)
+        // Mathematically shuffle the board backwards
         let shuffles = 50 + (lvl * 20);
         for (let i = 0; i < shuffles; i++) {
             let src = Math.floor(Math.random() * tempTubes.length);
@@ -280,7 +351,7 @@
         tubes.forEach((tubeArr, index) => {
             let tubeEl = document.createElement('div');
             tubeEl.className = 'tube';
-            tubeEl.id = `tube-${index}`; // ID needed for hint animations
+            tubeEl.id = `tube-${index}`; 
             
             if (selectedTubeIndex === index) tubeEl.classList.add('selected');
             
@@ -304,7 +375,7 @@
 
     function handleTubeClick(index, element) {
         initAudio();
-        removeHintAnimations(); // Stop hints if they click anywhere
+        removeHintAnimations(); 
         if (isGameWon) return;
 
         // SELECTING A TUBE
@@ -328,11 +399,9 @@
                 let srcTopColor = srcTube[srcTube.length - 1];
                 let destTopColor = destTube[destTube.length - 1];
 
-                // Rule: Pour into empty tube OR matching color
                 if (destTube.length < 4 && (destTube.length === 0 || destTopColor === srcTopColor)) {
                     sfx.pour();
                     
-                    // Pour ALL consecutive blocks of the same color
                     while (srcTube.length > 0 && srcTube[srcTube.length - 1] === srcTopColor && destTube.length < 4) {
                         destTube.push(srcTube.pop());
                     }
@@ -341,7 +410,6 @@
                     renderTubes();
                     checkWinCondition();
                 } else {
-                    // Invalid move shake
                     sfx.tap();
                     element.classList.remove('shake-anim');
                     void element.offsetWidth;
@@ -358,44 +426,39 @@
     // --- SMART HINT SYSTEM ---
     function getHint() {
         initAudio();
-        removeHintAnimations(); // Clear previous hints
+        removeHintAnimations(); 
         
-        // Find a valid move
         for (let i = 0; i < tubes.length; i++) {
-            if (tubes[i].length === 0) continue; // Source is empty
+            if (tubes[i].length === 0) continue; 
             
             let srcColor = tubes[i][tubes[i].length - 1];
             let isSolid = tubes[i].every(c => c === srcColor);
             
-            // Don't suggest moving a completed solid color just to move it
             if (isSolid && tubes[i].length === 4) continue;
 
             for (let j = 0; j < tubes.length; j++) {
-                if (i === j) continue; // Same tube
-                if (tubes[j].length === 4) continue; // Dest is full
+                if (i === j) continue; 
+                if (tubes[j].length === 4) continue; 
 
                 let destEmpty = tubes[j].length === 0;
-                // Don't suggest moving a solid chunk of color into an empty tube (useless move)
-                if (destEmpty && isSolid) continue;
+                if (destEmpty && isSolid) continue; // Don't move solid colors to empty tubes
 
                 let destColor = destEmpty ? null : tubes[j][tubes[j].length - 1];
 
                 if (destEmpty || destColor === srcColor) {
-                    // Valid move found! Highlight tube i and j
                     sfx.hint();
                     document.getElementById(`tube-${i}`).classList.add('hint-anim');
                     document.getElementById(`tube-${j}`).classList.add('hint-anim');
                     statusText.innerText = "Try pouring the glowing tubes! ✨";
-                    statusText.style.color = "#fcd34d"; // Yellow text
+                    statusText.style.color = "#fcd34d"; 
                     return;
                 }
             }
         }
         
-        // If the loop finishes and finds no moves:
         sfx.tap();
         statusText.innerText = "No moves left! Time to restart. 🔄";
-        statusText.style.color = "#f87171"; // Red text
+        statusText.style.color = "#f87171"; 
     }
 
     function checkWinCondition() {
@@ -418,6 +481,14 @@
         nextBtn.style.display = "block";
         nextBtn.classList.add('tada-anim');
         selectedTubeIndex = null;
+        
+        // Unlock next level if needed
+        if (currentLevel === maxUnlockedLevel) {
+            maxUnlockedLevel++;
+            localStorage.setItem('zenColorSortMaxLevel', maxUnlockedLevel);
+        }
+        
+        updateNavButtons();
         renderTubes();
     }
 
