@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Emoji Match-Up</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 80px 15px 30px; 
+        position: relative;
+    }
+
+    .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        color: white;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 1000;
+    }
+
+    .back-btn:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
+
+    .card-container {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        padding: 25px 20px;
+        border-radius: 24px;
+        text-align: center;
+        width: 100%;
+        max-width: 500px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        z-index: 10;
+        animation: fadeUp 0.6s ease;
+        margin: auto; 
+    }
+
+    h2 {
+        font-size: clamp(22px, 6vw, 26px);
+        margin-bottom: 5px;
+        background: linear-gradient(to right, #a855f7, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+
+    /* MENU STYLES */
+    .menu-options {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+
+    /* GAME PLAY STYLES */
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        background: rgba(0,0,0,0.2);
+        padding: 10px 15px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(var(--cols, 4), 1fr);
+        gap: clamp(4px, 1.5vw, 10px); 
+        perspective: 1000px;
+        margin-bottom: 20px;
+    }
+
+    .memory-card {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.4s cubic-bezier(0.4, 0.2, 0.2, 1);
+        cursor: pointer;
+    }
+
+    .memory-card.flip { transform: rotateY(180deg); }
+    .memory-card.matched { cursor: default; }
+
+    .memory-card.matched .back-face {
+        background: rgba(16, 185, 129, 0.2);
+        border: 2px solid #34d399;
+        box-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+    }
+
+    .front-face, .back-face {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        border-radius: 8px; 
+        backface-visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .front-face {
+        background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+        color: white;
+        font-size: calc(60px / var(--cols)); 
+    }
+
+    .back-face {
+        background: #1e293b;
+        transform: rotateY(180deg);
+        border: 2px solid #38bdf8;
+        font-size: calc(100px / var(--cols)); 
+    }
+
+    /* Action Buttons row */
+    .action-row {
+        display: flex; 
+        gap: 8px; 
+        margin-top: 15px;
+        flex-wrap: wrap; /* Allows wrapping on tiny screens */
+    }
+
+    button {
+        flex: 1; /* Makes buttons equal width */
+        min-width: 80px;
+        padding: 12px 10px;
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: clamp(12px, 3.5vw, 14px); /* Scales text to fit 3 buttons */
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+    .btn-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
+    .btn-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+    .btn-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+    .btn-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+
+    button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    button:active { transform: translateY(1px); }
+    button:disabled { background: #334155; box-shadow: none; color: #94a3b8; cursor: not-allowed; transform: none; filter: none; }
+
+    .result { margin-top: 10px; font-size: 16px; font-weight: 600; color: #4ade80; min-height: 24px; }
+
+    .floating-emoji {
+        position: fixed;
+        font-size: 35px;
+        bottom: -50px;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.8;
+        animation: floatUp 3s ease-in forwards;
+    }
+
+    @keyframes floatUp { 0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; } 100% { transform: translateY(-110vh) scale(1.5) rotate(360deg); opacity: 0; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes tada { 0% { transform: scale(1); } 10%, 20% { transform: scale(0.9) rotate(-3deg); } 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); } 40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); } 100% { transform: scale(1) rotate(0); } }
+    .tada-anim { animation: tada 1s ease-in-out both; }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-btn">
+    <span>⬅️</span> Back to Hub
+</a>
+
+<div class="card-container" id="gameCard">
+    <h2>Emoji Match 🃏</h2>
+    
+    <div id="menuPanel">
+        <p class="subtitle">Select your difficulty level</p>
+        <div class="menu-options">
+            <button class="btn-green" onclick="startGame(4)">🟢 Easy (4x4)</button>
+            <button class="btn-blue" onclick="startGame(6)">🔵 Medium (6x6)</button>
+            <button class="btn-purple" onclick="startGame(8)">🟣 Hard (8x8)</button>
+        </div>
+    </div>
+
+    <div id="playPanel" style="display: none;">
+        <p class="subtitle" id="diffSubtitle">Find all the matching pairs!</p>
+        
+        <div class="stats">
+            <span>Moves: <span id="moveCount" style="color:#fcd34d;">0</span></span>
+            <span>Pairs: <span id="pairCount" style="color:#38bdf8;">0/0</span></span>
+        </div>
+
+        <div class="grid" id="grid">
+            </div>
+
+        <div class="result" id="resultText"></div>
+        
+        <div class="action-row">
+            <button class="btn-red" onclick="showMenu()">Menu 🏠</button>
+            <button class="btn-orange" id="hintBtn" onclick="useHint()">Hint (3) 👁️</button>
+            <button class="btn-green" onclick="startGame(currentGridSize)">Restart 🔄</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- AUDIO SYSTEM ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol = 0.05) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+        flip: () => playTone(300, 'sine', 0.1),
+        match: () => { playTone(400, 'sine', 0.1); setTimeout(() => playTone(600, 'sine', 0.15), 100); },
+        mismatch: () => playTone(200, 'sawtooth', 0.2),
+        hint: () => { playTone(500, 'sine', 0.2); setTimeout(() => playTone(700, 'sine', 0.3), 200); },
+        win: () => {
+            playTone(400, 'sine', 0.1); setTimeout(() => playTone(500, 'sine', 0.1), 100);
+            setTimeout(() => playTone(600, 'sine', 0.2), 200); setTimeout(() => playTone(800, 'sine', 0.4), 300);
+        }
+    };
+
+    function triggerSideAnimation(emoji, count = 5) {
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                const el = document.createElement('div');
+                el.className = 'floating-emoji'; el.innerText = emoji;
+                const isLeft = Math.random() > 0.5;
+                el.style.left = `${isLeft ? Math.random() * 15 : 85 + Math.random() * 15}vw`;
+                el.style.animationDuration = `${2.5 + Math.random() * 1.5}s`;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 4500);
+            }, i * 200);
+        }
+    }
+
+    // --- GAME LOGIC ---
+    const masterEmojiPool = ['🚀','👽','👻','🍕','💎','🔥','🤖','🍒','🌮','🎱','🎲','🏆','🎸','🌍','🍄','🍔','🍟','🍩','🍦','🍭','🍉','🍌','🍓','🥑','🥕','🌽','⚽','🏀','🏈','🎾','🍔','🍟'];
+    
+    let hasFlippedCard = false, lockBoard = false, isHintActive = false;
+    let firstCard, secondCard;
+    let moves = 0, matchedPairs = 0, hintsLeft = 3;
+    let currentGridSize = 4, totalPairsRequired = 8;
+    let hintTimeout;
+
+    const grid = document.getElementById('grid');
+    const moveCountDisplay = document.getElementById('moveCount');
+    const pairCountDisplay = document.getElementById('pairCount');
+    const resultText = document.getElementById('resultText');
+    const gameCard = document.getElementById('gameCard');
+    const hintBtn = document.getElementById('hintBtn');
+    
+    const menuPanel = document.getElementById('menuPanel');
+    const playPanel = document.getElementById('playPanel');
+
+    function showMenu() {
+        initAudio(); sfx.flip();
+        playPanel.style.display = "none";
+        menuPanel.style.display = "block";
+        gameCard.classList.remove('tada-anim');
+        clearTimeout(hintTimeout); // Stop hint timer if running
+    }
+
+    function startGame(size) {
+        initAudio(); sfx.flip();
+        clearTimeout(hintTimeout);
+        
+        // Setup State
+        currentGridSize = size;
+        totalPairsRequired = (size * size) / 2;
+        moves = 0; matchedPairs = 0; hintsLeft = 3;
+        lockBoard = false; isHintActive = false; hasFlippedCard = false;
+        
+        // Update UI
+        menuPanel.style.display = "none";
+        playPanel.style.display = "block";
+        gameCard.classList.remove('tada-anim');
+        grid.innerHTML = '';
+        resultText.innerText = "";
+        moveCountDisplay.innerText = moves;
+        pairCountDisplay.innerText = `0/${totalPairsRequired}`;
+        
+        hintBtn.innerText = `Hint (${hintsLeft}) 👁️`;
+        hintBtn.disabled = false;
+        
+        // Dynamically set CSS columns for the grid
+        grid.style.setProperty('--cols', currentGridSize);
+
+        // Build the deck
+        let selectedEmojis = masterEmojiPool.slice(0, totalPairsRequired);
+        let gameDeck = [...selectedEmojis, ...selectedEmojis];
+        gameDeck.sort(() => Math.random() - 0.5);
+
+        // Generate Cards
+        gameDeck.forEach(emoji => {
+            const card = document.createElement('div');
+            card.classList.add('memory-card');
+            card.dataset.emoji = emoji;
+            card.innerHTML = `<div class="front-face">❓</div><div class="back-face">${emoji}</div>`;
+            card.addEventListener('click', flipCard);
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard() {
+        initAudio();
+        if (lockBoard || this === firstCard || isHintActive) return;
+
+        this.classList.add('flip');
+        sfx.flip();
+
+        if (!hasFlippedCard) {
+            hasFlippedCard = true; firstCard = this; return;
+        }
+
+        secondCard = this;
+        moves++; moveCountDisplay.innerText = moves;
+        checkForMatch();
+    }
+
+    function checkForMatch() {
+        if (firstCard.dataset.emoji === secondCard.dataset.emoji) disableCards();
+        else unflipCards();
+    }
+
+    function disableCards() {
+        firstCard.removeEventListener('click', flipCard);
+        secondCard.removeEventListener('click', flipCard);
+        firstCard.classList.add('matched'); secondCard.classList.add('matched');
+        
+        setTimeout(() => sfx.match(), 200);
+        triggerSideAnimation(firstCard.dataset.emoji, 4);
+        
+        matchedPairs++;
+        pairCountDisplay.innerText = `${matchedPairs}/${totalPairsRequired}`;
+        resetBoard();
+
+        if (matchedPairs === totalPairsRequired) {
+            setTimeout(() => {
+                sfx.win();
+                resultText.innerHTML = `🎉 You won in ${moves} moves!`;
+                gameCard.classList.add('tada-anim');
+                triggerSideAnimation('🎉', 15);
+            }, 500);
+        }
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+        setTimeout(() => {
+            firstCard.classList.remove('flip'); secondCard.classList.remove('flip');
+            sfx.mismatch(); resetBoard();
+        }, 800);
+    }
+
+    function resetBoard() {
+        [hasFlippedCard, lockBoard] = [false, false];
+        [firstCard, secondCard] = [null, null];
+    }
+
+    // --- HINT SYSTEM ---
+    function useHint() {
+        initAudio();
+        if (hintsLeft <= 0 || isHintActive || lockBoard) return;
+
+        sfx.hint();
+        isHintActive = true;
+        lockBoard = true; // Stop player from clicking while hint is showing
+        hintsLeft--;
+        
+        hintBtn.innerText = `Hint (${hintsLeft}) 👁️`;
+        if (hintsLeft === 0) hintBtn.disabled = true;
+
+        // If user already clicked one card, unflip it safely so it doesn't break the game logic
+        if (hasFlippedCard) {
+            firstCard.classList.remove('flip');
+            resetBoard();
+        }
+
+        // Find all unmatched cards and flip them open
+        const allUnmatchedCards = document.querySelectorAll('.memory-card:not(.matched)');
+        allUnmatchedCards.forEach(card => card.classList.add('flip'));
+
+        // Flip them back over after 5 seconds
+        hintTimeout = setTimeout(() => {
+            allUnmatchedCards.forEach(card => card.classList.remove('flip'));
+            sfx.flip();
+            isHintActive = false;
+            lockBoard = false;
+        }, 5000);
+    }
+
+    document.querySelector('.back-btn').addEventListener('click', () => { initAudio(); sfx.flip(); });
+</script>
+
+</body>
+</html>
