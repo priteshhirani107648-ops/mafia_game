@@ -155,6 +155,12 @@
         h1 { font-size: 32px; }
         .card { min-height: 280px; }
     }
+/* Add this near your other card hover effects (around line 77) */
+    .card.sort:hover { box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.3); }
+
+    /* Add this near your other button colors (around line 125) */
+    .btn-pink { background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); }
+    .btn-pink:hover { box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6); transform: translateY(-2px); }
 </style>
 </head>
 <body>
@@ -191,7 +197,12 @@
             <p>Train your brain and test your memory by finding all the matching pairs in record time.</p>
             <a href="emoji-match.html" class="play-btn btn-purple" onclick="playClickSound(event)">Play Match-Up</a>
         </div>
-
+<div class="card sort">
+            <div class="card-icon">🧪</div>
+            <h3>Zen Color Sort</h3>
+            <p>A deeply relaxing puzzle. Pour vibrant colors between tubes until they match perfectly. No timers, no stress.</p>
+            <a href="color-sort.html" class="play-btn btn-pink" onclick="playClickSound(event)">Sort & Relax</a>
+        </div>
       
     </div>
 
