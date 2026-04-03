@@ -4,14 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Arcade Dashboard</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
         font-family: 'Poppins', sans-serif;
@@ -25,61 +24,37 @@
         overflow-x: hidden;
     }
 
-    header {
-        text-align: center;
-        margin-bottom: 50px;
-        animation: fadeInDown 0.8s ease-out;
-    }
+    header { text-align: center; margin-bottom: 50px; animation: fadeInDown 0.8s ease-out; }
 
     h1 {
-        font-size: 42px;
-        font-weight: 800;
+        font-size: 42px; font-weight: 800;
         background: linear-gradient(to right, #38bdf8, #a855f7, #ec4899);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
-        letter-spacing: 1px;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 10px; letter-spacing: 1px;
     }
 
-    p.subtitle {
-        color: #94a3b8;
-        font-size: 16px;
-        font-weight: 500;
-    }
+    p.subtitle { color: #94a3b8; font-size: 16px; font-weight: 500; }
 
     .game-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 30px;
-        width: 100%;
-        max-width: 1000px;
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px; width: 100%; max-width: 1000px;
         animation: fadeInUp 0.8s ease-out 0.2s both;
     }
 
     .card {
-        background: rgba(30, 41, 59, 0.6);
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        padding: 30px;
-        text-align: center;
+        background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px);
+        border-radius: 24px; padding: 30px; text-align: center;
         border: 1px solid rgba(255, 255, 255, 0.05);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 320px;
+        position: relative; overflow: hidden; display: flex;
+        flex-direction: column; justify-content: space-between; min-height: 320px;
     }
 
     .card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: -100%; width: 50%; height: 100%;
+        content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
         background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
-        transform: skewX(-25deg);
-        transition: 0.5s;
+        transform: skewX(-25deg); transition: 0.5s;
     }
 
     .card:hover {
@@ -87,103 +62,84 @@
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         border-color: rgba(255, 255, 255, 0.15);
     }
-
-    .card:hover::before {
-        left: 200%;
-    }
+    .card:hover::before { left: 200%; }
 
     /* Card Glow Hover Effects */
     .card.mafia:hover { box-shadow: 0 20px 40px rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.3); }
     .card.guess:hover { box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.3); }
     .card.match:hover { box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.3); }
     .card.focus:hover { box-shadow: 0 20px 40px rgba(52, 211, 153, 0.2); border-color: rgba(52, 211, 153, 0.3); }
+    .card.sort:hover { box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.3); }
+    .card.patchwork:hover { box-shadow: 0 20px 40px rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.3); }
+    .card.decrypt:hover { box-shadow: 0 20px 40px rgba(249, 115, 22, 0.2); border-color: rgba(249, 115, 22, 0.3); } /* New */
 
-    .card-icon {
-        font-size: 64px;
-        margin-bottom: 15px;
-        filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
-    }
-
-    .card h3 {
-        font-size: 22px;
-        color: white;
-        margin-bottom: 10px;
-    }
-
-    .card p {
-        color: #94a3b8;
-        font-size: 14px;
-        line-height: 1.5;
-        margin-bottom: 25px;
-        flex-grow: 1;
-    }
+    .card-icon { font-size: 64px; margin-bottom: 15px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); }
+    .card h3 { font-size: 22px; color: white; margin-bottom: 10px; }
+    .card p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 25px; flex-grow: 1; }
 
     /* --- Buttons --- */
     .play-btn {
-        display: inline-block;
-        padding: 12px 25px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        text-decoration: none;
-        color: white;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        width: 100%;
+        display: inline-block; padding: 12px 25px; border-radius: 12px;
+        font-size: 16px; font-weight: 600; text-decoration: none; color: white;
+        transition: all 0.3s ease; border: none; cursor: pointer; width: 100%; text-align: center;
     }
 
-    /* Button Colors */
     .btn-red { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
-    .btn-red:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6); transform: translateY(-2px); }
-
     .btn-blue { background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
-    .btn-blue:hover { box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); transform: translateY(-2px); }
-
     .btn-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
-    .btn-purple:hover { box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6); transform: translateY(-2px); }
-
-    /* The missing Green Button CSS! */
     .btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-    .btn-green:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); transform: translateY(-2px); }
+    .btn-pink { background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); }
+    .btn-cyan { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4); }
+    .btn-orange { background: linear-gradient(135deg, #f97316 0%, #c2410c 100%); box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4); } /* New */
+
+    .play-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+    /* --- PWA Install Popup --- */
+    .install-popup {
+        display: none; /* Hidden by default, JS turns it on */
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+        border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px;
+        padding: 20px 25px; width: 90%; max-width: 400px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 1000;
+        text-align: center; animation: fadeInUp 0.5s ease-out;
+    }
+    .install-popup h3 { color: #fff; margin-bottom: 5px; font-size: 20px; }
+    .install-popup p { color: #94a3b8; font-size: 14px; margin-bottom: 15px; }
+    .install-popup .close-btn {
+        position: absolute; top: 10px; right: 15px;
+        color: #94a3b8; cursor: pointer; font-size: 24px; line-height: 1;
+    }
+    .install-popup .close-btn:hover { color: #fff; }
 
     @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Mobile adjustments */
-    @media (max-width: 600px) {
-        h1 { font-size: 32px; }
-        .card { min-height: 280px; }
-    }
-/* Add this near your other card hover effects (around line 77) */
-    .card.sort:hover { box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.3); }
-
-    /* Add this near your other button colors (around line 125) */
-    .btn-pink { background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); }
-    .btn-pink:hover { box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6); transform: translateY(-2px); }
-/* Add this near your other card hover effects (around line 77) */
-    .card.patchwork:hover { box-shadow: 0 20px 40px rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.3); }
-
-    /* Add this near your other button colors (around line 125) */
-    .btn-cyan { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4); }
-    .btn-cyan:hover { box-shadow: 0 6px 20px rgba(14, 165, 233, 0.6); transform: translateY(-2px); }
+    @media (max-width: 600px) { h1 { font-size: 32px; } .card { min-height: 280px; } }
 </style>
 </head>
 <body>
 
     <header>
-        <h1>My Web Arcade 🕹️</h1>
+        <h1>Hirani Arcade 🕹️</h1>
         <p class="subtitle">Select an experience to start</p>
     </header>
 
     <div class="game-grid">
-  <div class="card focus">
+        <div class="card decrypt">
+            <div class="card-icon">💻</div>
+            <h3>Hirani Decrypt</h3>
+            <p>Hack the secure mainframe in this cyberpunk logic puzzle. Crack the 4-color passcode using pure deduction.</p>
+            <a href="zen-decrypt.html" class="play-btn btn-orange" onclick="playClickSound(event)">Hack System</a>
+        </div>
+
+        <div class="card focus">
             <div class="card-icon">🌿</div>
             <h3>Zen Focus Tree</h3>
             <p>Plant a seed, put your phone down, and focus. Grow your digital garden while caring for your mind.</p>
             <a href="zen-focus.html" class="play-btn btn-green" onclick="playClickSound(event)">Start Growing</a>
         </div>
-<div class="card patchwork">
+        <div class="card patchwork">
             <div class="card-icon">🧩</div>
             <h3>Patchwork Logic</h3>
             <p>A deeply satisfying spatial puzzle. Drag to draw rectangles that match the clues, leaving no open squares!</p>
@@ -195,30 +151,35 @@
             <p>Deceive your friends, find the impostor, and survive the night in this classic social deduction game.</p>
             <a href="mafia.html" class="play-btn btn-red" onclick="playClickSound(event)">Play Mafia</a>
         </div>
-
         <div class="card guess">
             <div class="card-icon">🎯</div>
             <h3>Number Guesser</h3>
             <p>Challenge the AI or let the AI challenge you in this ultimate high-low prediction game.</p>
             <a href="guessing_game.html" class="play-btn btn-blue" onclick="playClickSound(event)">Play Guesser</a>
         </div>
-
         <div class="card match">
             <div class="card-icon">🃏</div>
             <h3>Emoji Match-Up</h3>
             <p>Train your brain and test your memory by finding all the matching pairs in record time.</p>
             <a href="emoji-match.html" class="play-btn btn-purple" onclick="playClickSound(event)">Play Match-Up</a>
         </div>
-<div class="card sort">
+        <div class="card sort">
             <div class="card-icon">🧪</div>
             <h3>Zen Color Sort</h3>
-            <p>A deeply relaxing puzzle. Pour vibrant colors between tubes until they match perfectly. No timers, no stress.</p>
+            <p>A deeply relaxing puzzle. Pour vibrant colors between tubes until they match perfectly. No timers.</p>
             <a href="color-sort.html" class="play-btn btn-pink" onclick="playClickSound(event)">Sort & Relax</a>
         </div>
-      
+    </div>
+
+    <div id="installPopup" class="install-popup">
+        <span class="close-btn" onclick="closeInstallPopup()">×</span>
+        <h3>Install Arcade</h3>
+        <p>Add the Hirani Arcade to your home screen for quick access and full-screen play!</p>
+        <button id="installBtn" class="play-btn btn-blue">Install App</button>
     </div>
 
     <script>
+        // --- Sound Logic ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
@@ -239,13 +200,47 @@
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            osc.connect(gain); gain.connect(audioCtx.destination);
             
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
-
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             setTimeout(() => { window.location.href = targetUrl; }, 150);
+        }
+
+        // --- PWA Installation Logic ---
+        let deferredPrompt;
+        const installPopup = document.getElementById('installPopup');
+        const installBtn = document.getElementById('installBtn');
+
+        // This event fires when the browser determines the app is installable
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); // Prevent default Chrome mini-infobar
+            deferredPrompt = e; // Stash the event
+            installPopup.style.display = 'block'; // Show our custom popup
+        });
+
+        installBtn.addEventListener('click', async () => {
+            installPopup.style.display = 'none'; // Hide our popup
+            if (deferredPrompt) {
+                deferredPrompt.prompt(); // Show the browser's native install prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
+
+        function closeInstallPopup() {
+            installPopup.style.display = 'none';
+        }
+
+        // --- Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('Service Worker Registered!', reg);
+                }).catch(err => {
+                    console.log('Service Worker registration failed: ', err);
+                });
+            });
         }
     </script>
 </body>
