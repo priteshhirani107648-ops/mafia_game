@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hirani Decrypt | Assisted Mode</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    background-color: #05080f;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+  
+  #bg-grid {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: 
+      linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: -1;
+    animation: drift 20s linear infinite;
+  }
+  @keyframes drift { from { transform: translateY(0); } to { transform: translateY(30px); } }
+
+  #confetti-canvas {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .header {
+    margin-top: 2vh;
+    text-align: center;
+    z-index: 10;
+  }
+  .header h1 {
+    color: #00ffcc;
+    margin: 0;
+    letter-spacing: 6px;
+    text-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+  }
+  .header p {
+    color: #4a6b8c;
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+  }
+
+  .game-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 450px;
+    height: 85vh;
+    z-index: 10;
+  }
+
+  #history-log {
+    flex-grow: 1;
+    width: 100%;
+    overflow-y: auto;
+    margin: 15px 0;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    background: rgba(10, 15, 25, 0.6);
+    border: 1px solid #1a2a40;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    scroll-behavior: smooth;
+  }
+  
+  #history-log::-webkit-scrollbar { width: 4px; }
+  #history-log::-webkit-scrollbar-thumb { background: #00ffcc; border-radius: 4px; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 30px;
+    border: 1px solid #1a2a40;
+    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #active-input-area {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    background: rgba(0, 255, 204, 0.05);
+    border-radius: 30px;
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+    margin-bottom: 15px;
+    transition: all 0.3s;
+  }
+  .input-locked {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .slots { display: flex; gap: 15px; }
+  .slot {
+    width: 35px; height: 35px;
+    border-radius: 50%;
+    border: 2px dashed #2a3b52;
+    background: #05080d;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #active-input-area .slot:empty:hover {
+    border-color: #00ffcc; border-style: solid;
+  }
+
+  .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; border-style: solid; }
+  }
+
+  .feedback {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-left: 25px;
+    padding-left: 15px;
+    border-left: 1px solid #1a2a40;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #111a26;
+    border: 1px solid #1a2a40;
+    transition: all 0.3s;
+  }
+  .dot-on { animation: turnOn 0.4s ease forwards; }
+  @keyframes turnOn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); filter: brightness(1.5); }
+    100% { transform: scale(1); }
+  }
+  .exact { background: #00ffcc; border-color: #00ffcc; box-shadow: 0 0 10px #00ffcc; }
+  .partial { background: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .palette {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .color-btn {
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.3s, box-shadow 0.2s;
+  }
+  .color-btn:hover:not(.used) { transform: scale(1.15) translateY(-5px); }
+  .color-btn.used {
+    opacity: 0.1; pointer-events: none;
+    box-shadow: none !important; transform: scale(0.8);
+  }
+
+  .c-red { background: #ff0055; box-shadow: 0 0 15px rgba(255,0,85,0.6); border-color:#fff;}
+  .c-blue { background: #0088ff; box-shadow: 0 0 15px rgba(0,136,255,0.6); border-color:#fff;}
+  .c-green { background: #00ffaa; box-shadow: 0 0 15px rgba(0,255,170,0.6); border-color:#fff;}
+  .c-yellow { background: #ffea00; box-shadow: 0 0 15px rgba(255,234,0,0.6); border-color:#fff;}
+  .c-purple { background: #aa00ff; box-shadow: 0 0 15px rgba(170,0,255,0.6); border-color:#fff;}
+  .c-orange { background: #ff6600; box-shadow: 0 0 15px rgba(255,102,0,0.6); border-color:#fff;}
+
+  /* Action Buttons Row */
+  .action-row {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .action-btn {
+    background: transparent;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s;
+    padding: 12px 20px;
+  }
+  
+  .btn-execute {
+    color: #00ffcc; border: 1px solid #00ffcc;
+    opacity: 0.3; pointer-events: none;
+    flex-grow: 2;
+  }
+  .btn-execute.ready {
+    opacity: 1; pointer-events: auto;
+    background: rgba(0, 255, 204, 0.1);
+  }
+  .btn-execute.ready:hover {
+    background: #00ffcc; color: #000;
+    box-shadow: 0 0 20px #00ffcc; transform: translateY(-2px);
+  }
+
+  .btn-hint {
+    color: #ffea00; border: 1px solid #ffea00;
+    background: rgba(255, 234, 0, 0.1);
+  }
+  .btn-hint:hover {
+    background: #ffea00; color: #000;
+    box-shadow: 0 0 20px #ffea00; transform: translateY(-2px);
+  }
+  .btn-hint:disabled { opacity: 0.2; pointer-events: none; }
+
+  .btn-abort {
+    color: #ff0055; border: 1px solid #ff0055;
+    background: rgba(255, 0, 85, 0.1);
+  }
+  .btn-abort:hover {
+    background: #ff0055; color: #000;
+    box-shadow: 0 0 20px #ff0055; transform: translateY(-2px);
+  }
+  .btn-abort:disabled { opacity: 0.2; pointer-events: none; }
+
+  /* Secret Reveal Animation */
+  #secret-reveal { display: flex; gap: 15px; margin-bottom: 10px; }
+  .secret-wrapper { perspective: 1000px; width: 45px; height: 45px; }
+  .secret-slot {
+    width: 100%; height: 100%;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .secret-wrapper.flipped .secret-slot { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .front {
+    background: #111a26; border: 2px solid #2a3b52;
+    color: #4a6b8c; font-size: 1.5rem;
+  }
+  .back { transform: rotateY(180deg); border: 2px solid #fff; }
+
+  #message-log {
+    color: #4a6b8c; font-size: 1rem;
+    letter-spacing: 2px; text-align: center;
+    min-height: 25px; transition: all 0.3s;
+  }
+
+</style>
+</head>
+<body>
+
+  <div id="bg-grid"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="header">
+    <h1>DECRYPT</h1>
+    <p>ASSISTED LOGIC TERMINAL</p>
+  </div>
+
+  <div class="game-wrapper">
+    
+    <div id="secret-reveal">
+      <div class="secret-wrapper" id="w0"><div class="secret-slot"><div class="face front">?</div><div class="face back" id="b0"></div></div></div>
+      <div class="secret-wrapper" id="w1"><div class="secret-slot"><div class="face front">?</div><div class="face back" id="b1"></div></div></div>
+      <div class="secret-wrapper" id="w2"><div class="secret-slot"><div class="face front">?</div><div class="face back" id="b2"></div></div></div>
+      <div class="secret-wrapper" id="w3"><div class="secret-slot"><div class="face front">?</div><div class="face back" id="b3"></div></div></div>
+    </div>
+
+    <div id="history-log"></div>
+
+    <div id="active-input-area">
+      <div class="slots">
+        <div class="slot" id="active-0" onclick="removeColor(0)"></div>
+        <div class="slot" id="active-1" onclick="removeColor(1)"></div>
+        <div class="slot" id="active-2" onclick="removeColor(2)"></div>
+        <div class="slot" id="active-3" onclick="removeColor(3)"></div>
+      </div>
+    </div>
+
+    <div id="message-log">SYSTEM READY. AWAITING INPUT.</div>
+
+    <div class="controls">
+      <div class="palette">
+        <div class="color-btn c-red" id="btn-c-red" onclick="selectColor('c-red')"></div>
+        <div class="color-btn c-blue" id="btn-c-blue" onclick="selectColor('c-blue')"></div>
+        <div class="color-btn c-green" id="btn-c-green" onclick="selectColor('c-green')"></div>
+        <div class="color-btn c-yellow" id="btn-c-yellow" onclick="selectColor('c-yellow')"></div>
+        <div class="color-btn c-purple" id="btn-c-purple" onclick="selectColor('c-purple')"></div>
+        <div class="color-btn c-orange" id="btn-c-orange" onclick="selectColor('c-orange')"></div>
+      </div>
+      
+      <div class="action-row">
+        <button id="hint-btn" class="action-btn btn-hint" onclick="useHint()">HINT</button>
+        <button id="execute-btn" class="action-btn btn-execute" onclick="executeGuess()">EXECUTE</button>
+        <button id="abort-btn" class="action-btn btn-abort" onclick="abortGame()">ABORT</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const COLORS = ['c-red', 'c-blue', 'c-green', 'c-yellow', 'c-purple', 'c-orange'];
+    
+    let secretCode = [];
+    let currentGuess = [];
+    let revealedHints = []; // Tracks which indices have been revealed
+    let isProcessing = false;
+    let gameOver = false;
+    let attempts = 0;
+
+    const historyLog = document.getElementById('history-log');
+    const activeInputArea = document.getElementById('active-input-area');
+    const executeBtn = document.getElementById('execute-btn');
+    const hintBtn = document.getElementById('hint-btn');
+    const abortBtn = document.getElementById('abort-btn');
+    const messageLog = document.getElementById('message-log');
+
+    // Particle System
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        let angle = Math.random() * Math.PI * 2;
+        let speed = Math.random() * 15 + 5;
+        this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+        this.life = 1.0; this.size = Math.random() * 5 + 3; this.gravity = 0.2;
+      }
+      update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.life -= 0.015; }
+      draw() {
+        ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
+        ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
+      }
+    }
+
+    function spawnConfetti() {
+      const hexColors = ['#ff0055', '#0088ff', '#00ffaa', '#ffea00', '#aa00ff', '#ff6600'];
+      for(let i = 0; i < 150; i++) particles.push(new Particle(canvas.width/2, canvas.height/3, hexColors[Math.floor(Math.random() * hexColors.length)]));
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update(); particles[i].draw();
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+      if(particles.length > 0 || gameOver) requestAnimationFrame(animateParticles);
+    }
+
+    function initGame() {
+      secretCode = [];
+      revealedHints = [];
+      let availableColors = [...COLORS];
+      for (let i = 0; i < 4; i++) {
+        let randIdx = Math.floor(Math.random() * availableColors.length);
+        secretCode.push(availableColors[randIdx]);
+        availableColors.splice(randIdx, 1);
+      }
+      
+      historyLog.innerHTML = '';
+      currentGuess = [];
+      attempts = 0;
+      isProcessing = false;
+      gameOver = false;
+      particles = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      for(let i=0; i<4; i++) {
+        document.getElementById(`w${i}`).classList.remove('flipped');
+        document.getElementById(`b${i}`).className = 'face back';
+      }
+
+      executeBtn.innerText = "EXECUTE";
+      hintBtn.disabled = false;
+      abortBtn.disabled = false;
+      activeInputArea.classList.remove('input-locked');
+      messageLog.innerText = "SYSTEM READY. AWAITING INPUT.";
+      messageLog.style.color = "#4a6b8c";
+      messageLog.style.textShadow = "none";
+      
+      updateInputUI();
+    }
+
+    // --- NEW: HINT AND ABORT LOGIC ---
+    function useHint() {
+      if (isProcessing || gameOver || revealedHints.length >= 4) return;
+      
+      // Find indices that haven't been revealed yet
+      let unrevealed = [0, 1, 2, 3].filter(i => !revealedHints.includes(i));
+      if (unrevealed.length === 0) return;
+
+      // Pick a random unrevealed slot
+      let targetIdx = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+      revealedHints.push(targetIdx);
+
+      // Flip the tile to show the color
+      document.getElementById(`b${targetIdx}`).className = `face back ${secretCode[targetIdx]}`;
+      document.getElementById(`w${targetIdx}`).classList.add('flipped');
+
+      messageLog.innerText = "HINT APPLIED. SECURE FRAGMENT REVEALED.";
+      messageLog.style.color = "#ffea00";
+
+      // Disable hint button if all are revealed
+      if (revealedHints.length >= 4) hintBtn.disabled = true;
+    }
+
+    function abortGame() {
+      if (isProcessing || gameOver) return;
+      
+      // Reveal everything that isn't revealed
+      for (let i = 0; i < 4; i++) {
+        if (!revealedHints.includes(i)) {
+          setTimeout(() => {
+            document.getElementById(`b${i}`).className = `face back ${secretCode[i]}`;
+            document.getElementById(`w${i}`).classList.add('flipped');
+          }, i * 150);
+        }
+      }
+
+      gameOver = true;
+      hintBtn.disabled = true;
+      abortBtn.disabled = true;
+      activeInputArea.classList.add('input-locked');
+      
+      messageLog.innerText = "DECRYPTION ABORTED. FIREWALL SECURED.";
+      messageLog.style.color = "#ff0055";
+      
+      executeBtn.innerText = "REBOOT SYSTEM";
+      executeBtn.classList.add('ready');
+    }
+    // ---------------------------------
+
+    function selectColor(colorClass) {
+      if (isProcessing || gameOver) return;
+      if (currentGuess.length < 4 && !currentGuess.includes(colorClass)) {
+        currentGuess.push(colorClass);
+        updateInputUI();
+      }
+    }
+
+    function removeColor(slotIdx) {
+      if (isProcessing || gameOver) return;
+      if (slotIdx < currentGuess.length) {
+        currentGuess.splice(slotIdx, 1);
+        updateInputUI();
+      }
+    }
+
+    function updateInputUI() {
+      for (let i = 0; i < 4; i++) {
+        const slot = document.getElementById(`active-${i}`);
+        slot.className = 'slot'; 
+        if (i < currentGuess.length) {
+          slot.classList.add(currentGuess[i]);
+          slot.classList.add('pop-in'); 
+        }
+      }
+
+      COLORS.forEach(c => {
+        const btn = document.getElementById(`btn-${c}`);
+        if (currentGuess.includes(c)) btn.classList.add('used');
+        else btn.classList.remove('used');
+      });
+
+      if (currentGuess.length === 4) executeBtn.classList.add('ready');
+      else executeBtn.classList.remove('ready');
+    }
+
+    function executeGuess() {
+      if (gameOver) { initGame(); return; }
+      if (currentGuess.length !== 4 || isProcessing) return;
+
+      isProcessing = true;
+      executeBtn.classList.remove('ready');
+      hintBtn.disabled = true; // disable hint while animating
+      abortBtn.disabled = true;
+      activeInputArea.classList.add('input-locked');
+      messageLog.innerText = "PROCESSING SEQUENCE...";
+      messageLog.style.color = "#4a6b8c";
+      attempts++;
+      
+      let exactMatches = 0;
+      let colorMatches = 0;
+      let secretTemp = [...secretCode];
+      let guessTemp = [...currentGuess];
+
+      for (let i = 3; i >= 0; i--) {
+        if (guessTemp[i] === secretTemp[i]) {
+          exactMatches++;
+          guessTemp.splice(i, 1); secretTemp.splice(i, 1);
+        }
+      }
+      for (let i = 0; i < guessTemp.length; i++) {
+        let matchIdx = secretTemp.indexOf(guessTemp[i]);
+        if (matchIdx !== -1) {
+          colorMatches++;
+          secretTemp.splice(matchIdx, 1); 
+        }
+      }
+
+      const row = document.createElement('div');
+      row.className = 'row';
+      const slotsHTML = currentGuess.map(c => `<div class="slot ${c}" style="border-style:solid;"></div>`).join('');
+      let dotsHTML = '';
+      for(let i=0; i<4; i++) dotsHTML += `<div class="dot" id="dot-${attempts}-${i}"></div>`;
+
+      row.innerHTML = `<div class="slots">${slotsHTML}</div><div class="feedback">${dotsHTML}</div>`;
+      historyLog.appendChild(row);
+      setTimeout(() => { historyLog.scrollTop = historyLog.scrollHeight; }, 50);
+
+      let dotIndex = 0;
+      const results = [];
+      for(let i=0; i<exactMatches; i++) results.push('exact');
+      for(let i=0; i<colorMatches; i++) results.push('partial');
+
+      function animateNextDot() {
+        if(dotIndex < results.length) {
+          const dot = document.getElementById(`dot-${attempts}-${dotIndex}`);
+          dot.classList.add(results[dotIndex]);
+          dot.classList.add('dot-on');
+          dotIndex++;
+          setTimeout(animateNextDot, 300); 
+        } else {
+          finalizeTurn(exactMatches);
+        }
+      }
+      setTimeout(animateNextDot, 400); 
+    }
+
+    function finalizeTurn(exactMatches) {
+      if (exactMatches === 4) {
+        gameOver = true;
+        messageLog.innerText = `FIREWALL BREACHED IN ${attempts} ATTEMPTS.`;
+        messageLog.style.color = "#00ffcc";
+        messageLog.style.textShadow = "0 0 15px rgba(0,255,204,0.8)";
+        
+        for(let i=0; i<4; i++) {
+          if (!revealedHints.includes(i)) {
+            setTimeout(() => {
+              document.getElementById(`b${i}`).className = `face back ${secretCode[i]}`;
+              document.getElementById(`w${i}`).classList.add('flipped');
+            }, i * 200); 
+          }
+        }
+
+        setTimeout(() => {
+          spawnConfetti();
+          animateParticles();
+          executeBtn.innerText = "REBOOT SYSTEM";
+          executeBtn.classList.add('ready');
+        }, 1000);
+
+      } else {
+        currentGuess = [];
+        updateInputUI();
+        activeInputArea.classList.remove('input-locked');
+        isProcessing = false;
+        
+        // Re-enable hint and abort buttons if the game isn't over
+        if (revealedHints.length < 4) hintBtn.disabled = false;
+        abortBtn.disabled = false;
+        
+        messageLog.innerText = "INCORRECT. CONTINUE DECRYPTION.";
+      }
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
