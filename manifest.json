@@ -1,7 +1,7 @@
 {
-  "name": "Mafia Game",
-  "short_name": "Mafia",
-  "description": "A web-based Mafia party game",
+  "name": "Hirani Arcade",
+  "short_name": "Terminal Zero",
+  "description": "A web-based party game",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#020617",
