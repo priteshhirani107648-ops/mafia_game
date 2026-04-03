@@ -276,11 +276,43 @@
     color: #4a6b8c; font-size: 1rem;
     letter-spacing: 2px; text-align: center;
     min-height: 25px; transition: all 0.3s;
+  }/* --- Back Button --- */
+  .back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #4a6b8c;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .back-btn:hover {
+    color: #00ffcc;
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.8);
+    transform: translateX(-5px); /* Gentle slide left on hover */
+  }
+
+  /* Adjust for mobile screens so it doesn't overlap the title */
+  @media (max-width: 600px) {
+    .back-btn {
+      top: 10px;
+      left: 10px;
+      font-size: 0.8rem;
+    }
   }
 
 </style>
 </head>
 <body>
+<body>
+  <a href="index.html" class="back-btn">◄ ARCADE</a>
 
   <div id="bg-grid"></div>
   <canvas id="confetti-canvas"></canvas>
